@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simul-Marchés Expert - Décret 2014-1039</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const FaIcon = ({ icon, className = "" }) => <i className={`fa-solid fa-${icon} ${className}`}></i>;
+
+        const SCENARIO_DATA = [
+            // --- 1. PRÉPARATION & PLANIFICATION ---
+            {
+                id: 1,
+                category: "Planification",
+                title: "Publication du PPM",
+                context: "Nous sommes au début de l'année budgétaire. Votre ministère prévoit 50 marchés.",
+                question: "Quand devez-vous procéder à la publication du plan prévisionnel (PPM) ?",
+                choices: [
+                    { text: "Publication sur TUNEPS au plus tard 30 jours avant le début des procédures.", isCorrect: true, feedback: "L'Article 8 impose de notifier le plan prévisionnel aux commissions avant fin février, et de le publier sur le site national (TUNEPS) au plus tard 30 jours avant le début des procédures de passation.", article: "Art. 8", penalty: 0 },
+                    { text: "Simple affichage dans les locaux de l'administration.", isCorrect: false, feedback: "Insuffisant. La dématérialisation et la transparence imposent la publication sur le site national des marchés publics.", article: "Art. 8", penalty: 20 }
+                ]
+            },
+            {
+                id: 2,
+                category: "Préparation",
+                title: "Fractionnement des besoins",
+                context: "Besoin de fournitures de 120 000 DT. On propose 4 bons de commande de 30 000 DT.",
+                question: "Quelle est la bonne décision concernant cette proposition ?",
+                choices: [
+                    { text: "La rejeter, c'est un fractionnement illégal.", isCorrect: true, feedback: "L'Article 9 interdit de fractionner les commandes de façon à les soustraire à la passation de marchés écrits ou à leur examen par la commission de contrôle.", article: "Art. 9", penalty: 0 },
+                    { text: "L'accepter, si les services demandeurs sont différents.", isCorrect: false, feedback: "Le besoin est évalué globalement pour l'acheteur public, peu importe les services internes.", article: "Art. 9", penalty: 30 }
+                ]
+            },
+            {
+                id: 3,
+                category: "Préparation",
+                title: "Estimation du prix",
+                context: "Vous lancez un marché de travaux sans étude de prix préalable.",
+                question: "Que risquez-vous en procédant au lancement sans prix de référence ?",
+                choices: [
+                    { text: "Un rejet du dossier par la commission de contrôle.", isCorrect: true, feedback: "L'Article 11 impose d'arrêter le montant des estimations et de s'assurer de la disponibilité des financements avant tout appel à la concurrence.", article: "Art. 11", penalty: 0 },
+                    { text: "Rien, le marché se régulera par la concurrence.", isCorrect: false, feedback: "Sans prix de référence, l'administration ne peut pas juger du caractère raisonnable des offres.", article: "Art. 11", penalty: 15 }
+                ]
+            },
+            // --- 2. TYPES DE MARCHÉS ---
+            {
+                id: 4,
+                category: "Types de Marchés",
+                title: "Marché à prix fermes",
+                context: "Marché de fournitures de bureau d'une durée de 4 mois.",
+                question: "Quel régime de prix devez-vous appliquer pour ce contrat ?",
+                choices: [
+                    { text: "Prix ferme, avec possibilité d'actualisation sous conditions.", isCorrect: true, feedback: "L'Article 36 stipule que le marché est à prix ferme s'il ne peut être modifié, avec droit à l'actualisation si le délai avant notification dépasse 120 jours. L'Article 37 réserve la révision aux marchés dépassant un an (ou 6 mois pour prix fluctuants).", article: "Art. 36 & 37", penalty: 0 },
+                    { text: "Prix révisable selon l'inflation.", isCorrect: false, feedback: "La révision est réservée aux marchés de plus d'une année (ou 6 mois en cas de prix à fluctuation rapide).", article: "Art. 37", penalty: 10 }
+                ]
+            },
+            {
+                id: 5,
+                category: "Types de Marchés",
+                title: "Marché à commandes",
+                context: "Besoin récurrent de pièces de rechange dont la quantité exacte est inconnue.",
+                question: "Quelle forme de marché devez-vous privilégier ?",
+                choices: [
+                    { text: "Marché cadre avec minimum et maximum.", isCorrect: true, feedback: "L'Article 14 permet le marché cadre fixant un minimum et un maximum pour les besoins permanents et prévisibles dont les quantités effectives sont déterminées par bons de commande.", article: "Art. 14", penalty: 0 },
+                    { text: "Marché à prix global et forfaitaire.", isCorrect: false, feedback: "Inadapté si les quantités sont aléatoires, cela créerait des avenants incessants.", article: "Art. 14", penalty: 15 }
+                ]
+            },
+            // --- 3. CLAUSES SOCIALES ET ENVIRONNEMENTALES ---
+            {
+                id: 6,
+                category: "PME & Social",
+                title: "Quota PME",
+                context: "Votre budget annuel de marchés est de 10 millions de DT.",
+                question: "Quelle part de ce budget devez-vous réserver aux PME ?",
+                choices: [
+                    { text: "Un pourcentage dans la limite de 20% du montant estimé.", isCorrect: true, feedback: "L'Article 20 indique que l'acheteur public réserve annuellement aux petites entreprises un pourcentage dans la limite de 20% du montant estimé des marchés. Ce programme doit être établi et transmis à la HAICOP au plus tard le 31 janvier.", article: "Art. 20", penalty: 0 },
+                    { text: "5% pour encourager l'entreprenariat.", isCorrect: false, feedback: "Le plafond légal est fixé dans la limite de 20%, c'est une mesure forte de soutien économique à planifier annuellement.", article: "Art. 20", penalty: 10 }
+                ]
+            },
+            {
+                id: 7,
+                category: "Développement Durable",
+                title: "Clauses environnementales",
+                context: "Marché de construction d'un lycée.",
+                question: "Avez-vous le droit d'imposer des critères d'efficacité énergétique ?",
+                choices: [
+                    { text: "Oui, c'est une condition d'exécution légale et recommandée.", isCorrect: true, feedback: "L'Article 19 permet l'intégration d'éléments à caractère environnemental qui tiennent compte des objectifs du développement durable.", article: "Art. 19", penalty: 0 },
+                    { text: "Non, cela limite l'accès des entreprises classiques.", isCorrect: false, feedback: "L'administration a un devoir d'intégration des objectifs du développement durable selon le décret.", article: "Art. 19", penalty: 15 }
+                ]
+            },
+            // --- 4. DOSSIER D'APPEL D'OFFRES (DAO) ---
+            {
+                id: 8,
+                category: "Spécifications",
+                title: "Citations de marques",
+                context: "Un cahier des charges demande explicitement des camions 'Mercedes'.",
+                question: "Pouvez-vous valider cette spécification dans le cahier des charges ?",
+                choices: [
+                    { text: "Non, l'interdiction de favoriser une marque est stricte.", isCorrect: true, feedback: "L'Article 31 interdit formellement de faire référence à une marque, un brevet ou un type déterminé dès lors que cela aurait pour effet de favoriser ou d'éliminer certains candidats.", article: "Art. 31", penalty: 0 },
+                    { text: "Oui, pour garantir la qualité de la flotte.", isCorrect: false, feedback: "C'est une clause discriminatoire qui viole l'égalité de traitement.", article: "Art. 31", penalty: 25 }
+                ]
+            },
+            {
+                id: 9,
+                category: "Spécifications",
+                title: "Variantes techniques",
+                context: "Vous préparez un DAO pour un pont.",
+                question: "Dans quelles conditions devez-vous autoriser les soumissionnaires à présenter des variantes ?",
+                choices: [
+                    { text: "Elles sont autorisées par défaut, sauf dispositions contraires des cahiers des charges.", isCorrect: true, feedback: "L'Article 33 stipule que les soumissionnaires peuvent présenter des variantes sauf si le cahier des charges s'y oppose, à condition de respecter la solution de base.", article: "Art. 33", penalty: 0 },
+                    { text: "Elles sont toujours autorisées, sans aucune condition.", isCorrect: false, feedback: "Les variantes nécessitent de respecter l'objet du marché et ne doivent pas entraîner de modifications substantielles.", article: "Art. 33", penalty: 15 }
+                ]
+            },
+            // --- 5. PROCÉDURES DE PASSATION ---
+            {
+                id: 10,
+                category: "Procédures",
+                title: "Appel d'offres restreint",
+                context: "Marché de haute complexité technologique.",
+                question: "Quelle est la condition réglementaire préalable pour lancer cet AO restreint ?",
+                choices: [
+                    { text: "Il doit être précédé d'une étape de présélection publique.", isCorrect: true, feedback: "L'Article 42 définit l'AO restreint comme une procédure précédée d'une présélection suite à un avis à manifestation d'intérêt.", article: "Art. 42", penalty: 0 },
+                    { text: "Limiter l'envoi aux entreprises que vous invitez par lettre directement.", isCorrect: false, feedback: "Ce n'est pas discrétionnaire ; l'avis de présélection doit être publié.", article: "Art. 42", penalty: 20 }
+                ]
+            },
+            {
+                id: 11,
+                category: "Procédures",
+                title: "Marché de gré à gré (négociation directe)",
+                context: "Une urgence impérieuse suite à une inondation.",
+                question: "Quelle procédure exceptionnelle pouvez-vous utiliser pour contracter rapidement ?",
+                choices: [
+                    { text: "La négociation directe, pour urgence impérieuse (circonstances imprévisibles).", isCorrect: true, feedback: "L'Article 49 autorise la négociation directe dans les cas d'urgence impérieuse correspondant à des circonstances naturelles difficilement prévisibles.", article: "Art. 49", penalty: 0 },
+                    { text: "La procédure simplifiée, indépendamment du montant.", isCorrect: false, feedback: "L'urgence impérieuse (catastrophe naturelle) justifie la négociation directe, et son interprétation est stricte.", article: "Art. 49", penalty: 25 }
+                ]
+            },
+            {
+                id: 12,
+                category: "Procédures",
+                title: "Concours",
+                context: "Projet architectural pour un nouveau musée.",
+                question: "Quelle procédure devez-vous adopter pour sélectionner le concepteur ?",
+                choices: [
+                    { text: "L'appel d'offres avec concours.", isCorrect: true, feedback: "L'Article 43 permet l'appel d'offres avec concours lorsque des motifs d'ordre technique, esthétique ou financier justifient des recherches particulières.", article: "Art. 43", penalty: 0 },
+                    { text: "L'appel d'offres ouvert classique.", isCorrect: false, feedback: "L'esthétique et la conception nécessitent l'évaluation par un jury indépendant (Art. 45).", article: "Art. 45", penalty: 15 }
+                ]
+            },
+            // --- 6. RÉCEPTION ET OUVERTURE ---
+            {
+                id: 13,
+                category: "Réception",
+                title: "Offre hors délai",
+                context: "Une offre arrive sur TUNEPS 2 minutes après l'heure limite.",
+                question: "Quelle décision devez-vous prendre face à cette offre tardive ?",
+                choices: [
+                    { text: "La rejeter et la restituer à son titulaire.", isCorrect: true, feedback: "L'Article 60 stipule que sont éliminées les offres parvenues après la date et l'heure limites, et l'Article 62 précise qu'elles sont restituées à leur titulaire.", article: "Art. 60 & 62", penalty: 0 },
+                    { text: "L'accepter de manière exceptionnelle en justifiant d'un ralentissement serveur.", isCorrect: false, feedback: "La date et heure limite sont impératives. Aucune tolérance n'est permise pour préserver l'égalité.", article: "Art. 60", penalty: 30 }
+                ]
+            },
+            {
+                id: 14,
+                category: "Réception",
+                title: "Commission d'ouverture",
+                context: "Ouverture des plis par la commission permanente.",
+                question: "Quelle irrégularité vous oblige à rejeter l'offre d'office (sans régularisation possible) ?",
+                choices: [
+                    { text: "L'absence de la caution provisoire.", isCorrect: true, feedback: "L'Article 56 stipule que la non présentation du cautionnement provisoire constitue un motif de rejet d'office. Les autres documents manquants peuvent faire l'objet d'une demande de complément.", article: "Art. 56", penalty: 0 },
+                    { text: "La présentation d'une attestation fiscale expirée.", isCorrect: false, feedback: "Ces pièces peuvent faire l'objet d'une demande de régularisation par la commission (Art. 60).", article: "Art. 60", penalty: 20 }
+                ]
+            },
+            // --- 7. ANALYSE ET ÉVALUATION ---
+            {
+                id: 15,
+                category: "Analyse",
+                title: "Critères d'élimination",
+                context: "Un candidat ne présente pas son attestation fiscale.",
+                question: "Que devez-vous faire face à cette omission ?",
+                choices: [
+                    { text: "L'inviter par écrit à régulariser dans un délai fixé par la commission.", isCorrect: true, feedback: "L'Article 60 permet à la commission d'ouverture d'inviter par écrit les soumissionnaires à fournir les documents manquants exigés, y compris les pièces administratives, dans un délai prescrit.", article: "Art. 60", penalty: 0 },
+                    { text: "Rejeter son offre immédiatement pour dossier incomplet.", isCorrect: false, feedback: "Le décret permet la régularisation des pièces administratives pour favoriser la participation (sauf la caution provisoire).", article: "Art. 60", penalty: 15 }
+                ]
+            },
+            {
+                id: 16,
+                category: "Analyse",
+                title: "Méthodologie d'évaluation",
+                context: "Vous voulez changer la pondération technique après avoir vu les offres.",
+                question: "Pouvez-vous modifier cette pondération en cours d'analyse ?",
+                choices: [
+                    { text: "Absolument pas, c'est formellement interdit.", isCorrect: true, feedback: "L'Article 63 stipule expressément que l'évaluation s'effectue en application d'une méthodologie insérée dans les cahiers des charges. Toute modification a posteriori est illégale.", article: "Art. 63", penalty: 0 },
+                    { text: "Oui, si l'objectif est de favoriser la meilleure qualité technique.", isCorrect: false, feedback: "Modifier les critères après coup constitue une grave atteinte à la transparence et à l'égalité des candidats.", article: "Art. 63", penalty: 40 }
+                ]
+            },
+            {
+                id: 17,
+                category: "Analyse",
+                title: "Offre Anormalement Basse",
+                context: "Un prix est 40% inférieur à votre estimation.",
+                question: "Quelle procédure obligatoire devez-vous suivre avant de rejeter cette offre ?",
+                choices: [
+                    { text: "Demander par écrit au candidat des précisions et justifications sur ses prix.", isCorrect: true, feedback: "L'Article 65 impose à l'acheteur public de proposer le rejet d'une offre anormalement basse seulement après avoir demandé par écrit les précisions utiles et vérifié les justifications.", article: "Art. 65", penalty: 0 },
+                    { text: "L'attribuer immédiatement au moins-disant absolu pour faire des économies.", isCorrect: false, feedback: "Risque de défaillance. Le décret impose une vérification de la structure des prix jugés anormalement bas.", article: "Art. 65", penalty: 20 }
+                ]
+            },
+            // --- 8. ATTRIBUTION ---
+            {
+                id: 18,
+                category: "Attribution",
+                title: "Préférence Nationale",
+                context: "Offre Tunisienne à 105k DT, Offre Étrangère à 100k DT.",
+                question: "À quel candidat devez-vous attribuer le marché à qualité égale ?",
+                choices: [
+                    { text: "À l'offre Tunisienne.", isCorrect: true, feedback: "L'Article 26 prévoit que les offres des entreprises tunisiennes (ou produits tunisiens) sont préférées si leur montant ne dépasse pas de plus de 10% l'offre étrangère.", article: "Art. 26", penalty: 0 },
+                    { text: "À l'offre Étrangère.", isCorrect: false, feedback: "La marge de préférence de 10% s'applique légalement en faveur de l'offre ou du produit tunisien.", article: "Art. 26", penalty: 25 }
+                ]
+            },
+            {
+                id: 19,
+                category: "Attribution",
+                title: "Délai de Standstill",
+                context: "Vous avez choisi l'attributaire et publié l'avis d'attribution.",
+                question: "Quand êtes-vous autorisé à signer le contrat ?",
+                choices: [
+                    { text: "Uniquement après l'expiration d'un délai de 5 jours ouvrables.", isCorrect: true, feedback: "L'Article 74 impose que le marché ne peut être signé qu'après l'expiration d'un délai de cinq (5) jours ouvrables à compter de la date de publication de l'avis d'attribution.", article: "Art. 74", penalty: 0 },
+                    { text: "Dès le lendemain, pour accélérer le démarrage du projet.", isCorrect: false, feedback: "Le non-respect du délai suspend le droit de signer pour permettre d'éventuels recours.", article: "Art. 74", penalty: 20 }
+                ]
+            },
+            // --- 9. CAUTIONS ET GARANTIES ---
+            {
+                id: 20,
+                category: "Garanties",
+                title: "Caution Définitive",
+                context: "Le marché est signé.",
+                question: "À quel taux devez-vous fixer la caution définitive dans le cahier des charges ?",
+                choices: [
+                    { text: "Maximum 3% (ou 10% si délai de garantie sans retenue).", isCorrect: true, feedback: "L'Article 105 fixe le cautionnement définitif à un maximum de 3% si le marché n'est pas assorti de délai de garantie, ou 10% s'il comporte un délai de garantie sans retenue.", article: "Art. 105", penalty: 0 },
+                    { text: "À 10% systématiquement pour couvrir tous les risques.", isCorrect: false, feedback: "Le taux standard maximal est de 3% en l'absence de délai de garantie spécifique.", article: "Art. 105", penalty: 10 }
+                ]
+            },
+            {
+                id: 21,
+                category: "Garanties",
+                title: "Retenue de garantie",
+                context: "Marché de travaux.",
+                question: "Comment devez-vous calculer et opérer cette retenue ?",
+                choices: [
+                    { text: "Maximum 10% sur les acomptes, avec un cumul global (retenue + caution) de 15% maximum.", isCorrect: true, feedback: "L'Article 110 précise que la retenue ne doit pas excéder 10% des acomptes, sans que le cumul avec le cautionnement définitif ne dépasse 15% du montant du marché.", article: "Art. 110", penalty: 0 },
+                    { text: "Un prélèvement forfaitaire de 10% à la fin du marché.", isCorrect: false, feedback: "La retenue s'opère par prélèvement progressif sur les paiements d'acomptes (Art. 109).", article: "Art. 109", penalty: 10 }
+                ]
+            },
+            // --- 10. EXÉCUTION & MODIFICATIONS ---
+            {
+                id: 22,
+                category: "Exécution",
+                title: "Retards de livraison",
+                context: "Le fournisseur a 10 jours de retard sur le délai contractuel.",
+                question: "Quelle procédure devez-vous suivre pour appliquer les pénalités ?",
+                choices: [
+                    { text: "Les appliquer automatiquement, sans aucune mise en demeure préalable.", isCorrect: true, feedback: "L'Article 171 stipule que les pénalités et sanctions s'appliquent sans mise en demeure préalable ou engagement de toute autre procédure.", article: "Art. 171", penalty: 0 },
+                    { text: "Lui adresser une mise en demeure par huissier avant de les appliquer.", isCorrect: false, feedback: "Le décret ne requiert aucune procédure de mise en demeure pour appliquer la pénalité de retard.", article: "Art. 171", penalty: 15 }
+                ]
+            },
+            {
+                id: 23,
+                category: "Exécution",
+                title: "Plafond des pénalités",
+                context: "Le retard se prolonge et s'accumule.",
+                question: "À quel niveau devez-vous plafonner légalement ces pénalités de retard ?",
+                choices: [
+                    { text: "À 5% du montant définitif du marché, sauf dérogation du CCAP.", isCorrect: true, feedback: "L'Article 171 stipule que le montant des pénalités pour retard ne peut pas dépasser 5% du montant définitif du marché, tant qu'il n'y est pas dérogé par les cahiers des charges.", article: "Art. 171", penalty: 0 },
+                    { text: "Aucun plafond n'est fixé, elles s'accumulent jusqu'à la livraison.", isCorrect: false, feedback: "Un plafond de base de 5% est prévu par le décret.", article: "Art. 171", penalty: 10 }
+                ]
+            },
+            {
+                id: 24,
+                category: "Modifications",
+                title: "Avenant financier",
+                context: "Besoin de travaux supplémentaires augmentant le marché de 25%.",
+                question: "Que devez-vous faire pour régulariser cette variation importante ?",
+                choices: [
+                    { text: "Établir un projet d'avenant et solliciter l'avis préalable de la commission compétente.", isCorrect: true, feedback: "L'Article 84 fixe la limite de variation dans la masse à 20% par défaut. L'Article 85 précise que toute variation au-delà de 20% doit faire l'objet d'un projet d'avenant soumis à l'avis préalable de la commission compétente.", article: "Art. 84 & 85", penalty: 0 },
+                    { text: "L'ordonner par simple ordre de service sans avenant.", isCorrect: false, feedback: "Toute variation importante dépassant 20% entraîne obligatoirement l'examen d'un avenant.", article: "Art. 85", penalty: 25 }
+                ]
+            },
+            // --- 11. SOUS-TRAITANCE ---
+            {
+                id: 25,
+                category: "Sous-traitance",
+                title: "Agrément du sous-traitant",
+                context: "L'entreprise titulaire veut confier 30% du lot électricité à une autre société.",
+                question: "Que devez-vous exiger avant d'accepter cette sous-traitance ?",
+                choices: [
+                    { text: "Qu'elle obtienne votre autorisation préalable écrite.", isCorrect: true, feedback: "L'Article 88 stipule que le titulaire peut confier l'exécution d'une partie du marché à un sous-traitant après autorisation préalable écrite de l'acheteur public.", article: "Art. 88", penalty: 0 },
+                    { text: "Une simple notification d'information de sa part.", isCorrect: false, feedback: "L'absence d'autorisation préalable expose le titulaire à des sanctions.", article: "Art. 88", penalty: 20 }
+                ]
+            },
+            {
+                id: 26,
+                category: "Sous-traitance",
+                title: "Paiement direct",
+                context: "Le sous-traitant est dûment agréé par vos services.",
+                question: "Pouvez-vous payer ce sous-traitant directement ?",
+                choices: [
+                    { text: "Oui, si le cahier des charges le prévoit.", isCorrect: true, feedback: "L'Article 88 indique que les cahiers des charges peuvent prévoir le paiement direct par l'acheteur public des sous-traitants agréés.", article: "Art. 88", penalty: 0 },
+                    { text: "Non, l'administration ne paie jamais que le titulaire du marché.", isCorrect: false, feedback: "Le décret permet expressément cette faculté pour fluidifier la chaîne de paiement.", article: "Art. 88", penalty: 10 }
+                ]
+            },
+            // --- 12. RÉSILIATION ET LITIGES ---
+            {
+                id: 27,
+                category: "Fin du marché",
+                title: "Résiliation pour faute",
+                context: "L'entreprise abandonne le chantier.",
+                question: "Quelle procédure préalable devez-vous engager avant la résiliation ?",
+                choices: [
+                    { text: "Adresser une mise en demeure lui accordant au moins 10 jours pour réagir.", isCorrect: true, feedback: "L'Article 119 précise que si le titulaire ne remplit pas ses obligations, l'acheteur le met en demeure. Passé le délai (min 10 jours), le marché peut être résilié.", article: "Art. 119", penalty: 0 },
+                    { text: "Résilier immédiatement de plein droit et saisir sa caution.", isCorrect: false, feedback: "La résiliation exige le respect strict de la procédure de mise en demeure (Art. 119).", article: "Art. 119", penalty: 20 }
+                ]
+            },
+            {
+                id: 28,
+                category: "Litiges",
+                title: "Règlement Amiable",
+                context: "Désaccord technique persistant sur un décompte de prix.",
+                question: "Quelle instance de médiation devez-vous privilégier avant d'aller au tribunal ?",
+                choices: [
+                    { text: "Le Comité consultatif de règlement amiable des litiges.", isCorrect: true, feedback: "L'Article 185 institue un comité consultatif de règlement amiable des litiges pour rechercher une solution équitable avant de recourir aux tribunaux.", article: "Art. 185", penalty: 0 },
+                    { text: "Le Tribunal Administratif en urgence.", isCorrect: false, feedback: "La médiation préalable via le comité de règlement amiable est fortement prévue par la réglementation pour désengorger les tribunaux.", article: "Art. 185", penalty: 10 }
+                ]
+            },
+            // --- 13. GOUVERNANCE ET CONTRÔLE ---
+            {
+                id: 29,
+                category: "Gouvernance",
+                title: "Rôle de la HAICOP",
+                context: "Vous avez un doute sur l'interprétation d'un article du décret.",
+                question: "À quel organe supérieur de contrôle devez-vous vous référer ?",
+                choices: [
+                    { text: "La Haute Instance de la Commande Publique (HAICOP).", isCorrect: true, feedback: "L'Article 147 précise l'existence et la composition de la HAICOP qui supervise la commande publique.", article: "Art. 147", penalty: 0 },
+                    { text: "Le Comité de Suivi et d'Enquête (COSEM).", isCorrect: false, feedback: "C'est la HAICOP (en tant que structure globale) qui régule et supervise le dispositif de la commande publique.", article: "Art. 147", penalty: 20 }
+                ]
+            },
+            {
+                id: 30,
+                category: "Contrôle",
+                title: "Seuils de contrôle",
+                context: "Marché de fournitures de 600 000 DT passé par l'Etat.",
+                question: "À quelle commission de contrôle devez-vous soumettre ce dossier ?",
+                choices: [
+                    { text: "À la commission départementale, selon le barème des seuils de compétence.", isCorrect: true, feedback: "L'Article 164 définit précisément les seuils de compétence. Pour un marché de fournitures de 600 000 DT (Etat), c'est la commission départementale qui est compétente.", article: "Art. 164", penalty: 0 },
+                    { text: "À la Commission Supérieure (CSCAM), qui examine tous les marchés importants.", isCorrect: false, feedback: "L'examen dépend strictement des seuils établis par le tableau de l'Article 164. La CSCAM n'intervient pas pour ce montant.", article: "Art. 164", penalty: 20 }
+                ]
+            },
+            {
+                id: 31,
+                category: "Contrôle",
+                title: "Nature de l'avis",
+                context: "La commission de contrôle émet un avis défavorable sur votre choix.",
+                question: "Quelle est la bonne décision face à cet avis défavorable ?",
+                choices: [
+                    { text: "S'y conformer (force de décision), ou solliciter une décision de passage outre par le chef du gouvernement.", isCorrect: true, feedback: "L'Article 162 donne force de décision à l'avis. On ne peut passer outre que par décision du chef du Gouvernement. Pour les entreprises publiques (Art. 163), l'avis est consultatif mais requiert des procédures spéciales.", article: "Art. 162 & 163", penalty: 0 },
+                    { text: "Le traiter comme un avis purement consultatif et poursuivre l'attribution.", isCorrect: false, feedback: "L'avis a 'force de décision' à l'égard de la plupart des acheteurs publics.", article: "Art. 162", penalty: 30 }
+                ]
+            },
+            // --- 14. CAS SPÉCIFIQUES ---
+            {
+                id: 32,
+                category: "Études",
+                title: "Marchés d'études",
+                context: "Sélection d'un bureau d'études pour un projet complexe.",
+                question: "Quelle méthode d'évaluation devez-vous appliquer pour cette sélection ?",
+                choices: [
+                    { text: "Selon la complexité : qualité/coût, choix fondé sur la qualité, ou moins disante sous note technique.", isCorrect: true, feedback: "L'Article 126 détaille 3 modalités : pondération qualité/coût, choix fondé sur la qualité (pour les plus complexes), ou proposition la moins disante (missions courantes).", article: "Art. 126", penalty: 0 },
+                    { text: "Exclusivement le critère du prix le moins-disant.", isCorrect: false, feedback: "Pour les études, le législateur a prévu des mécanismes où la note technique et la qualité jouent un rôle majeur.", article: "Art. 126", penalty: 15 }
+                ]
+            },
+            {
+                id: 33,
+                category: "Exportation",
+                title: "Produits à prix fluctuants",
+                context: "Achat de blé (produit d'importation) sur les marchés mondiaux.",
+                question: "Quelle procédure exceptionnelle de passation pouvez-vous invoquer ?",
+                choices: [
+                    { text: "Déroger aux règles normales via la commission interne face aux fluctuations.", isCorrect: true, feedback: "Le Chapitre 2 (Articles 127 à 134) prévoit des dispositions spécifiques permettant à la commission interne de déroger aux règles normales pour obtenir les meilleures offres face aux fluctuations rapides.", article: "Art. 127", penalty: 0 },
+                    { text: "Procéder obligatoirement par appel d'offres international avec 30 jours de délai.", isCorrect: false, feedback: "Incompatible avec la volatilité des prix ; le décret a prévu des procédures adaptées.", article: "Art. 127", penalty: 20 }
+                ]
+            },
+            {
+                id: 34,
+                category: "Ethique",
+                title: "Conflit d'intérêts",
+                context: "Le frère d'un membre de la Commission d'évaluation est soumissionnaire.",
+                question: "Que doit faire ce membre de la commission ?",
+                choices: [
+                    { text: "Prévenir de ce conflit et s'abstenir de participer aux travaux.", isCorrect: true, feedback: "L'Article 63 impose à tout membre de prévenir de tout fait compromettant son indépendance et de s'abstenir de participer, en lien avec les règles d'intégrité de l'Art. 173.", article: "Art. 63 & 173", penalty: 0 },
+                    { text: "Poursuivre les travaux à condition de ne pas noter l'offre de son frère.", isCorrect: false, feedback: "L'abstention de participation aux travaux est totale et obligatoire.", article: "Art. 63", penalty: 25 }
+                ]
+            },
+            {
+                id: 35,
+                category: "Clôture",
+                title: "Réception Définitive",
+                context: "Un an après la fin des travaux (expiration du délai de garantie).",
+                question: "Quand devez-vous restituer cette caution à l'entreprise ?",
+                choices: [
+                    { text: "Dans un délai maximum de 4 mois suivant la réception définitive ou la fin de garantie.", isCorrect: true, feedback: "L'Article 108 stipule que le cautionnement définitif est restitué 4 mois après la réception (s'il n'y a pas de délai de garantie) ou 4 mois après la fin du délai de garantie (si pas de retenue).", article: "Art. 108", penalty: 0 },
+                    { text: "La conserver définitivement au profit du Trésor public.", isCorrect: false, feedback: "C'est une garantie, elle a vocation à être restituée une fois les obligations éteintes.", article: "Art. 108", penalty: 15 }
+                ]
+            },
+            {
+                id: 36,
+                category: "Marchés de conception-réalisation",
+                title: "Conception-Réalisation",
+                context: "Projet d'usine hautement complexe.",
+                question: "Pouvez-vous utiliser un marché unique pour la conception et la réalisation ?",
+                choices: [
+                    { text: "Oui, si des motifs d'ordre technique exigent cette association étroite.", isCorrect: true, feedback: "L'Article 15 autorise ce montage pour les ouvrages dont les processus d'exécution exigent l'association étroite du concepteur et du réalisateur.", article: "Art. 15", penalty: 0 },
+                    { text: "Non, la stricte séparation maîtrise d'œuvre et entreprise est inviolable.", isCorrect: false, feedback: "Bien que ce soit la norme générale, le décret prévoit spécifiquement le marché de conception-réalisation comme exception (Art. 15).", article: "Art. 15", penalty: 15 }
+                ]
+            },
+            {
+                id: 37,
+                category: "Publicité",
+                title: "Délai minimum",
+                context: "Marché standard de fournitures.",
+                question: "Quel délai minimal de réception des offres devez-vous fixer dans l'avis ?",
+                choices: [
+                    { text: "30 jours en règle générale, réductible à 15 jours en cas d'urgence.", isCorrect: true, feedback: "L'Article 53 fixe la publication de l'avis à 30 jours au moins avant la date limite. Ce délai peut être ramené à 15 jours en cas d'urgence dûment justifiée.", article: "Art. 53", penalty: 0 },
+                    { text: "10 jours francs pour maximiser la célérité administrative.", isCorrect: false, feedback: "Délai illégal pour un appel d'offres ouvert hors cas très spécifiques ou procédure simplifiée.", article: "Art. 53", penalty: 20 }
+                ]
+            },
+            {
+                id: 38,
+                category: "Finances",
+                title: "Avances",
+                context: "Le titulaire demande une avance pour démarrer le chantier.",
+                question: "Pouvez-vous lui accorder l'avance demandée ?",
+                choices: [
+                    { text: "Oui, si le délai d'exécution dépasse 3 mois et contre une caution personnelle solidaire.", isCorrect: true, feedback: "L'Article 92 autorise le versement d'avances si le délai d'exécution dépasse 3 mois, sur demande expresse, et contre présentation d'une caution personnelle et solidaire.", article: "Art. 92", penalty: 0 },
+                    { text: "Non, l'État ne procède à aucun décaissement avant service fait.", isCorrect: false, feedback: "Le décret organise explicitement le régime des avances pour faciliter l'exécution de la commande.", article: "Art. 92", penalty: 15 }
+                ]
+            },
+            {
+                id: 39,
+                category: "Révision",
+                title: "Actualisation des prix",
+                context: "L'entreprise sollicite l'actualisation de son prix ferme suite à un délai de notification de 130 jours.",
+                question: "Que devez-vous répondre à cette demande d'actualisation ?",
+                choices: [
+                    { text: "Vous l'acceptez, car le délai entre l'offre et la notification dépasse 120 jours.", isCorrect: true, feedback: "L'Article 36 stipule que l'attributaire d'un marché à prix ferme peut demander l'actualisation si la période entre la remise de l'offre et la notification (ou commencement) dépasse 120 jours.", article: "Art. 36", penalty: 0 },
+                    { text: "Vous la rejetez, un prix ferme n'étant révisable en aucune circonstance.", isCorrect: false, feedback: "L'actualisation est le mécanisme de correction expressément prévu pour les retards de l'administration.", article: "Art. 36", penalty: 15 }
+                ]
+            },
+            {
+                id: 40,
+                category: "Audit",
+                title: "Contrôle après exécution",
+                context: "Le marché est en cours d'exécution ou terminé.",
+                question: "À quel type de contrôle votre marché est-il encore soumis ?",
+                choices: [
+                    { text: "À un contrôle a posteriori selon un programme annuel d'audit (ou missions spécifiques).", isCorrect: true, feedback: "L'Article 153 précise que le contrôle de l'exécution est exercé conformément à un programme annuel d'audit fixé par la HAICOP ou par des missions spécifiques.", article: "Art. 153", penalty: 0 },
+                    { text: "À aucun, l'approbation du règlement définitif clôturant tout contrôle.", isCorrect: false, feedback: "Le contrôle et l'audit a posteriori sont des éléments clés de la gouvernance intégrée au décret.", article: "Art. 153", penalty: 10 }
+                ]
+            },
+            // --- 15. NOUVEAUX SCÉNARIOS ---
+            {
+                id: 41,
+                category: "Évaluation",
+                title: "Appel d'offres infructueux",
+                context: "Lors de l'analyse des offres, vous constatez une entente manifeste entre les trois seuls participants.",
+                question: "Quelle décision devez-vous prendre face à cette situation ?",
+                choices: [
+                    { text: "Déclarer l'appel d'offres infructueux et procéder à une nouvelle mise en concurrence.", isCorrect: true, feedback: "L'Article 69 impose de déclarer l'appel d'offres infructueux en cas d'entente manifeste constatée, d'absence de participation, ou d'offres inacceptables.", article: "Art. 69", penalty: 0 },
+                    { text: "Désigner le candidat le moins-disant malgré l'entente pour ne pas retarder le projet.", isCorrect: false, feedback: "L'entente manifeste vicie la procédure. Le décret interdit formellement de poursuivre l'attribution dans ce cas et oblige à relancer la procédure.", article: "Art. 69", penalty: 20 }
+                ]
+            },
+            {
+                id: 42,
+                category: "Analyse",
+                title: "Méthodologie d'évaluation",
+                context: "Vous préparez le dossier d'un nouvel appel d'offres complexe.",
+                question: "Quand devez-vous figer cette méthodologie d'évaluation ?",
+                choices: [
+                    { text: "Avant le lancement de l'appel à la concurrence, en l'insérant dans le cahier des charges.", isCorrect: true, feedback: "L'Article 64 (et l'Art. 63) stipule que l'acheteur public établit une méthodologie d'évaluation non discriminatoire insérée dans les cahiers des charges.", article: "Art. 64", penalty: 0 },
+                    { text: "Après l'ouverture des plis pour s'adapter à la typologie des offres reçues.", isCorrect: false, feedback: "Il est strictement interdit d'établir ou de modifier la méthodologie après coup, cela violerait le principe fondamental de la transparence des procédures.", article: "Art. 64", penalty: 20 }
+                ]
+            },
+            {
+                id: 43,
+                category: "Gouvernance",
+                title: "Rapport spécial",
+                context: "Votre commission a terminé ses travaux et propose un attributaire.",
+                question: "Quel document obligatoire devez-vous transmettre pour justifier vos choix au contrôle ?",
+                choices: [
+                    { text: "Un rapport spécial justifiant vos décisions (allotissement, prix, PME, méthodologie).", isCorrect: true, feedback: "L'Article 169 impose à l'acheteur public de soumettre à la commission de contrôle un rapport spécial détaillant et justifiant les étapes clés de la passation et de l'évaluation.", article: "Art. 169", penalty: 0 },
+                    { text: "Le procès-verbal d'ouverture et le rapport d'évaluation technique standard.", isCorrect: false, feedback: "Les organes de contrôle exigent un rapport spécial motivé explicitant et justifiant expressément les décisions de l'acheteur (allotissement, choix du prix, PME, etc.).", article: "Art. 169", penalty: 10 }
+                ]
+            },
+            {
+                id: 44,
+                category: "Évaluation",
+                title: "Négociation interdite",
+                context: "L'offre du candidat pressenti dépasse légèrement le budget alloué.",
+                question: "Avez-vous le droit de négocier les prix avec ce candidat ?",
+                choices: [
+                    { text: "Non, sauf autorisation préalable expresse de la commission de contrôle (à la baisse).", isCorrect: true, feedback: "L'Article 66 stipule clairement que l'acheteur n'est pas habilité à négocier les prix, la seule exception étant une autorisation de la commission de contrôle pour une négociation exclusive à la baisse.", article: "Art. 66", penalty: 0 },
+                    { text: "Oui, la négociation financière est toujours permise avant la signature pour faire des économies.", isCorrect: false, feedback: "C'est une interdiction de principe en appel d'offres : l'acheteur public ne peut négocier directement de son propre chef sans l'autorisation stricte de la commission de contrôle.", article: "Art. 66", penalty: 20 }
+                ]
+            },
+            {
+                id: 45,
+                category: "Procédures",
+                title: "Procédure simplifiée",
+                context: "Achat de fournitures (hors informatique) estimé à 150 000 DT.",
+                question: "Pouvez-vous recourir à la procédure simplifiée pour cet achat ?",
+                choices: [
+                    { text: "Oui, via une commission dédiée, en respectant les principes de base et un manuel écrit.", isCorrect: true, feedback: "L'Article 50 autorise la procédure simplifiée pour ce seuil (de 100k à 300k). L'Article 51 rappelle l'obligation de respecter les principes fondamentaux (Art. 6) et d'utiliser un manuel de procédures écrit spécifique.", article: "Art. 50 & 51", penalty: 0 },
+                    { text: "Non, le seuil de 100 000 DT impose un appel d'offres ouvert classique inconditionnel.", isCorrect: false, feedback: "Le décret a aménagé des seuils spécifiques (ex: 300 000 DT pour les fournitures dans les autres secteurs) permettant l'allègement via la procédure simplifiée.", article: "Art. 50 & 51", penalty: 15 }
+                ]
+            },
+            {
+                id: 46,
+                category: "Litiges",
+                title: "Recours administratif",
+                context: "Un soumissionnaire évincé saisit le comité de suivi et d'enquête.",
+                question: "Que devez-vous faire suite à cette saisine du comité ?",
+                choices: [
+                    { text: "Suspendre les procédures de passation ou de notification jusqu'à l'avis du comité.", isCorrect: true, feedback: "L'Article 181 stipule clairement que la saisine du comité de suivi et d'enquête oblige l'acheteur public à suspendre les procédures dans l'attente de la décision du comité.", article: "Art. 180 & 181", penalty: 0 },
+                    { text: "Poursuivre la procédure normalement, le comité se prononçant a posteriori.", isCorrect: false, feedback: "L'effet suspensif est imposé par la réglementation pour garantir l'efficacité et l'utilité réelle du recours du candidat évincé.", article: "Art. 181", penalty: 20 }
+                ]
+            }
+        ];
+
+        function App() {
+          const [gameState, setGameState] = useState('home');
+          const [currentStepIndex, setCurrentStepIndex] = useState(0);
+          const [score, setScore] = useState(100);
+          const [errorsList, setErrorsList] = useState([]);
+          const [feedback, setFeedback] = useState(null);
+          const [stats, setStats] = useState({ correct: 0, wrong: 0 });
+
+          const currentStep = useMemo(() => SCENARIO_DATA[currentStepIndex], [currentStepIndex]);
+
+          const startGame = () => {
+            setGameState('playing');
+            setCurrentStepIndex(0);
+            setScore(100);
+            setErrorsList([]);
+            setFeedback(null);
+            setStats({ correct: 0, wrong: 0 });
+          };
+
+          const handleChoice = (choice) => {
+            setFeedback({
+              text: choice.feedback,
+              isCorrect: choice.isCorrect,
+              article: choice.article
+            });
+
+            if (!choice.isCorrect) {
+              setScore(prev => Math.max(0, prev - (choice.penalty || 10)));
+              setErrorsList(prev => [...prev, {
+                step: currentStep.title,
+                msg: choice.feedback,
+                art: choice.article
+              }]);
+              setStats(s => ({ ...s, wrong: s.wrong + 1 }));
+            } else {
+              setStats(s => ({ ...s, correct: s.correct + 1 }));
+            }
+          };
+
+          const nextStep = () => {
+            setFeedback(null);
+            if (currentStepIndex < SCENARIO_DATA.length - 1) {
+              setCurrentStepIndex(prev => prev + 1);
+            } else {
+              setGameState('end');
+            }
+          };
+
+          const renderHome = () => (
+            <div className="max-w-4xl mx-auto p-10 bg-white rounded-3xl shadow-xl border border-slate-200 text-center space-y-8 animate-fade-in mt-12">
+              <div className="inline-flex p-5 bg-blue-50 rounded-full text-blue-600 mb-2">
+                <FaIcon icon="landmark-flag" className="text-4xl" />
+              </div>
+              <h1 className="text-5xl font-black text-slate-800 tracking-tight">Simul-Marchés <span className="text-blue-600 italic font-medium text-2xl ml-2">Expert v7.1</span></h1>
+              <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                Formation immersive sur le <b>Décret n°2014-1039</b>. Testez vos connaissances sur l'intégralité du cycle de vie des marchés publics.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <FaIcon icon="list-check" className="text-blue-500 mb-2" />
+                  <h3 className="font-bold">{SCENARIO_DATA.length} Scénarios</h3>
+                  <p className="text-xs text-slate-500">De la préparation à l'audit final.</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <FaIcon icon="gavel" className="text-orange-500 mb-2" />
+                  <h3 className="font-bold">100% Juridique</h3>
+                  <p className="text-xs text-slate-500">Références directes aux articles.</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <FaIcon icon="user-shield" className="text-green-500 mb-2" />
+                  <h3 className="font-bold">Certifiant</h3>
+                  <p className="text-xs text-slate-500">Analysez votre conformité.</p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
+                <button onClick={startGame} className="px-10 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-lg shadow-lg transition-all hover:-translate-y-1">
+                  Lancer le parcours complet
+                </button>
+                <button onClick={() => setGameState('teacher')} className="px-10 py-5 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-600 rounded-2xl font-bold text-lg transition-all">
+                  Ressources
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderPlaying = () => (
+            <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+              <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center">
+                <div className="flex items-center gap-8">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Santé Juridique</span>
+                    <div className="flex items-center gap-2">
+                        <div className="h-3 w-32 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 transition-all duration-700" style={{width: `${score}%`}}></div>
+                        </div>
+                        <span className="font-black text-blue-600">{score}%</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Étape</span>
+                    <div className="text-lg font-bold text-slate-700">{currentStepIndex + 1} / {SCENARIO_DATA.length}</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="px-4 py-2 bg-green-50 text-green-700 rounded-xl text-xs font-bold border border-green-100">
+                    <FaIcon icon="check" className="mr-1" /> {stats.correct}
+                  </div>
+                  <div className="px-4 py-2 bg-red-50 text-red-700 rounded-xl text-xs font-bold border border-red-100">
+                    <FaIcon icon="xmark" className="mr-1" /> {stats.wrong}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-200 animate-slide-up">
+                <div className="p-10">
+                  <div className="flex justify-between items-start mb-6">
+                    <span className="px-4 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest rounded-full">
+                      {currentStep.category}
+                    </span>
+                    <span className="text-slate-300 font-mono italic">#{currentStep.id}</span>
+                  </div>
+
+                  <h2 className="text-3xl font-black text-slate-800 mb-6 leading-tight">{currentStep.title}</h2>
+                  
+                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 mb-8 relative">
+                    <FaIcon icon="quote-left" className="absolute -top-3 -left-1 text-slate-200 text-4xl" />
+                    <p className="text-lg text-slate-600 font-medium leading-relaxed italic">"{currentStep.context}"</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-start">
+                       <span className="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center mr-3 text-sm shrink-0">?</span>
+                       {currentStep.question}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {!feedback && currentStep.choices.map((choice, idx) => (
+                        <button key={idx} onClick={() => handleChoice(choice)} className="group flex items-center text-left p-5 border-2 border-slate-100 rounded-[1.5rem] hover:border-blue-500 hover:bg-blue-50 transition-all">
+                          <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg font-black text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all mr-6">
+                            {String.fromCharCode(65 + idx)}
+                          </div>
+                          <span className="text-lg font-bold text-slate-700">{choice.text}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {feedback && (
+                      <div className={`mt-8 p-8 rounded-[2rem] border-4 animate-fade-in ${feedback.isCorrect ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                        <div className="flex flex-col md:flex-row items-start gap-6">
+                          <div className={`p-4 rounded-2xl ${feedback.isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                             <FaIcon icon={feedback.isCorrect ? 'check-double' : 'triangle-exclamation'} className="text-2xl" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className={`text-2xl font-black mb-3 ${feedback.isCorrect ? 'text-emerald-800' : 'text-rose-800'}`}>
+                              {feedback.isCorrect ? 'Décision Réglementaire' : 'Alerte Non-Conformité'}
+                            </h4>
+                            <p className="text-lg text-slate-700 leading-relaxed mb-6">{feedback.text}</p>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-slate-200 font-black text-xs text-slate-500 uppercase">
+                              Référence : {feedback.article}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-8 flex justify-end">
+                            <button onClick={nextStep} className="px-10 py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-black flex items-center gap-3">
+                                {currentStepIndex < SCENARIO_DATA.length - 1 ? 'Suivant' : 'Voir le bilan'} <FaIcon icon="arrow-right" />
+                            </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+
+          const renderEnd = () => (
+            <div className="max-w-4xl mx-auto p-12 bg-white rounded-[3rem] shadow-2xl animate-fade-in mt-12 text-center border border-slate-200">
+              <h1 className="text-5xl font-black text-slate-800 mb-12">Bilan de Conformité</h1>
+
+              <div className="flex flex-col items-center mb-12">
+                 <div className="relative w-48 h-48 flex items-center justify-center mb-6">
+                    <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
+                        <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" 
+                                className={`${score >= 70 ? 'text-emerald-500' : 'text-rose-500'} transition-all duration-1000`}
+                                strokeDasharray={502.4} strokeDashoffset={502.4 - (502.4 * score / 100)} />
+                    </svg>
+                    <span className="absolute text-5xl font-black">{score}%</span>
+                 </div>
+                 <h2 className={`text-2xl font-black uppercase tracking-widest ${score >= 70 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {score >= 90 ? "Expert Certifié" : score >= 70 ? "Praticien Confirmé" : "Niveau Insuffisant"}
+                 </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-12">
+                  <div className="bg-slate-50 p-8 rounded-[2rem]">
+                    <h3 className="font-black text-slate-800 mb-4 flex items-center">Score: {stats.correct}/{SCENARIO_DATA.length} correct</h3>
+                    <p className="text-slate-600 font-medium">Vous avez parcouru l'intégralité des {SCENARIO_DATA.length} points de contrôle du décret.</p>
+                  </div>
+                  <div className="bg-rose-50 p-8 rounded-[2rem] border border-rose-100">
+                    <h3 className="font-black text-rose-800 mb-4">Articles à revoir</h3>
+                    <div className="max-h-40 overflow-y-auto pr-2 space-y-2 text-sm custom-scrollbar">
+                        {errorsList.length === 0 ? "Aucun ! Maîtrise parfaite." : errorsList.map((e, i) => (
+                            <div key={i} className="border-b border-rose-100 pb-1">
+                                <span className="font-bold">{e.art}</span>: {e.step}
+                            </div>
+                        ))}
+                    </div>
+                  </div>
+              </div>
+
+              <button onClick={startGame} className="px-12 py-5 bg-slate-900 text-white rounded-2xl font-black transition-all hover:scale-105">
+                Recommencer le cycle
+              </button>
+            </div>
+          );
+
+          const renderTeacher = () => (
+            <div className="max-w-4xl mx-auto p-12 bg-white rounded-[3rem] shadow-xl animate-fade-in mt-12 border border-slate-200">
+                <button onClick={() => setGameState('home')} className="text-slate-400 hover:text-slate-600 font-bold mb-8 flex items-center">
+                    <FaIcon icon="arrow-left" className="mr-2" /> Retour
+                </button>
+                <h2 className="text-4xl font-black text-slate-800 mb-8 tracking-tighter">Documentation Expert</h2>
+                <div className="space-y-6 text-slate-600 leading-relaxed">
+                    <p>Ce simulateur couvre les 4 grandes phases du décret n°2014-1039 :</p>
+                    <ul className="list-disc pl-6 space-y-2">
+                        <li><b>Préparation :</b> Planification, Allotissement, Estimation, Spécifications.</li>
+                        <li><b>Passation :</b> Publicité, Ouverture, Analyse, Attribution, Préférence Nationale.</li>
+                        <li><b>Exécution :</b> Cautions, Avenants, Sous-traitance, Pénalités.</li>
+                        <li><b>Gouvernance :</b> HAICOP, CSERP, Audit et Contrôle des commissions.</li>
+                    </ul>
+                    <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100 mt-8 font-medium">
+                        Dernière mise à jour conforme à la réglementation 2014 et ses textes d'application récents.
+                    </div>
+                </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen">
+              <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 py-4 px-8">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl">S</div>
+                    <div>
+                        <h1 className="font-black text-slate-800 leading-none">Simul-Marchés</h1>
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Tunisia Expert</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                    {SCENARIO_DATA.length} Scénarios Pédagogiques
+                  </div>
+                </div>
+              </header>
+
+              <main>
+                {gameState === 'home' && renderHome()}
+                {gameState === 'playing' && renderPlaying()}
+                {gameState === 'end' && renderEnd()}
+                {gameState === 'teacher' && renderTeacher()}
+              </main>
+
+              <footer className="py-10 text-center text-slate-400 text-xs">
+                © {new Date().getFullYear()} - Conforme au Décret n°2014-1039 du 13 mars 2014.
+              </footer>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

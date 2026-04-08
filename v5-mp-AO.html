@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning : Marchés Publics Tunisiens (Décret 2014-1039)</title>
+    <style>
+        /* --- CSS RESET & VARIABLES --- */
+        :root {
+            --primary: #1d4ed8; /* Blue 700 */
+            --primary-light: #eff6ff; /* Blue 50 */
+            --primary-hover: #1e40af; /* Blue 800 */
+            --success: #15803d; /* Green 700 */
+            --success-light: #f0fdf4; /* Green 50 */
+            --warning: #b45309; /* Yellow 700 */
+            --warning-light: #fffbeb; /* Yellow 50 */
+            --danger: #b91c1c; /* Red 700 */
+            --danger-light: #fef2f2; /* Red 50 */
+            --ref: #475569; /* Slate 600 */
+            --ref-light: #f8fafc; /* Slate 50 */
+            --bg-body: #f1f5f9; /* Slate 100 */
+            --bg-card: #ffffff;
+            --text-main: #334155; /* Slate 700 */
+            --text-muted: #64748b; /* Slate 500 */
+            --border: #e2e8f0; /* Slate 200 */
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --sidebar-width: 280px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p { font-size: 0.8rem; opacity: 0.9; }
+
+        #nav-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 0;
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item:hover { background-color: var(--primary-light); }
+        .nav-item.active {
+            background-color: var(--primary-light);
+            border-left-color: var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .nav-item.completed::after {
+            content: "✅";
+            margin-left: auto;
+            font-size: 0.8rem;
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .progress-container {
+            width: 200px;
+            background: var(--border);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .content-area {
+            padding: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* --- TYPOGRAPHY & BLOCKS --- */
+        h2 { font-size: 2rem; color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 10px;}
+        h3 { font-size: 1.4rem; margin: 1.5rem 0 1rem; color: var(--text-main); }
+        p { margin-bottom: 1rem; }
+        ul { margin-bottom: 1rem; padding-left: 20px; }
+        li { margin-bottom: 0.5rem; }
+
+        .pedagogy-block {
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            border-left: 5px solid;
+        }
+
+        .block-icon { font-size: 1.5rem; flex-shrink: 0; }
+        .block-content h4 { margin-bottom: 5px; font-size: 1.1rem; }
+        .block-content p:last-child { margin-bottom: 0; }
+
+        .block-info { background-color: var(--primary-light); border-left-color: var(--primary); color: #1e3a8a; }
+        .block-warning { background-color: var(--warning-light); border-left-color: var(--warning); color: #78350f; }
+        .block-success { background-color: var(--success-light); border-left-color: var(--success); color: #14532d; }
+        .block-ref { background-color: var(--ref-light); border-left-color: var(--ref); color: #334155; font-size: 0.9rem; font-style: italic;}
+
+        /* --- INTERACTIVE ELEMENTS --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background-color: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background-color: var(--bg-body); border-color: var(--text-muted); }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* --- QUIZ STYLES --- */
+        .quiz-container { margin-top: 2rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .quiz-option {
+            padding: 15px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+        .quiz-option:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); }
+        .quiz-option.selected { border-color: var(--primary); background: var(--primary-light); font-weight: bold; }
+        .quiz-option.correct { border-color: var(--success); background: var(--success-light); color: var(--success); }
+        .quiz-option.wrong { border-color: var(--danger); background: var(--danger-light); color: var(--danger); }
+        .quiz-option:disabled { cursor: default; }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: var(--radius);
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-box.show { display: block; }
+        .feedback-correct { background-color: var(--success-light); border: 1px solid var(--success); }
+        .feedback-wrong { background-color: var(--danger-light); border: 1px solid var(--danger); }
+
+        /* --- FINAL EXAM STYLES --- */
+        .exam-score {
+            text-align: center;
+            padding: 40px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            color: white;
+        }
+        .score-excellent { background: var(--success); }
+        .score-good { background: var(--primary); }
+        .score-average { background: var(--warning); }
+        .score-poor { background: var(--danger); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: -100%;
+                height: 100vh;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            }
+            #sidebar.open { left: 0; }
+            .mobile-menu-btn { display: block; }
+            .content-area { padding: 20px; }
+            .navigation-buttons { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; justify-content: center; }
+            .progress-container { width: 100px; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h1>Expert Marchés Publics</h1>
+            <p>Décret n°2014-1039</p>
+        </div>
+        <ul id="nav-menu">
+            <!-- Menu items injected via JS -->
+        </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content">
+        <div class="top-bar">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+            <div style="font-weight: bold; color: var(--primary);" id="top-title">Accueil</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);" id="progress-text">0%</span>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area" id="app-content">
+            <!-- Content injected via JS -->
+        </div>
+    </main>
+
+    <script>
+        /* ==========================================================================
+           DATA: MODULES & QUIZZES (Basé strictement sur le Décret 2014-1039)
+           ========================================================================== */
+        const modules = [
+            {
+                id: 'intro',
+                title: "Accueil & Introduction",
+                content: `
+                    <h2>Bienvenue dans la formation sur les Marchés Publics</h2>
+                    <p>Cette application autonome a été conçue pour vous permettre de maîtriser la réglementation des marchés publics en Tunisie, exclusivement basée sur le <strong>Décret n°2014-1039 du 13 mars 2014</strong>.</p>
+                    
+                    <div class="pedagogy-block block-info">
+                        <div class="block-icon">💡</div>
+                        <div class="block-content">
+                            <h4>Méthode d'apprentissage</h4>
+                            <p>Vous allez progresser à travers des modules thématiques interactifs. Lisez attentivement les règles, étudiez les cas pratiques et testez vos connaissances via les mini-quiz. Un examen final validera vos acquis.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Qu'est-ce qu'un marché public ?</h3>
+                        <p>Il s'agit de contrats écrits passés par l'acheteur public en vue de la réalisation de travaux, la fourniture de biens ou de services, ou la réalisation d'études.</p>
+                        
+                        <div class="pedagogy-block block-ref">
+                            <div class="block-icon">📘</div>
+                            <div class="block-content">
+                                <h4>Article 6</h4>
+                                <p>Les marchés publics sont passés conformément aux principes fondamentaux suivants : la liberté d'accès à la commande publique, l'égalité devant la commande publique, et la transparence des procédures.</p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                quiz: null
+            },
+            {
+                id: 'm1',
+                title: "1. Vue d'ensemble",
+                content: `
+                    <h2>Module 1 : Les principes et la définition</h2>
+                    <p>Comprendre la nature d'un marché public est la première étape. Tout achat de l'administration ne suit pas nécessairement les procédures lourdes des marchés publics, des seuils existent.</p>
+                    
+                    <h3>Les intervenants principaux</h3>
+                    <ul>
+                        <li><strong>L'Acheteur public :</strong> L'État, les collectivités locales, les établissements publics, etc.</li>
+                        <li><strong>Le Soumissionnaire :</strong> La personne physique ou morale qui propose une offre.</li>
+                        <li><strong>Le Titulaire :</strong> Le soumissionnaire dont l'offre a été retenue et qui a signé le contrat.</li>
+                    </ul>
+
+                    <div class="pedagogy-block block-warning">
+                        <div class="block-icon">⚠️</div>
+                        <div class="block-content">
+                            <h4>Erreur fréquente</h4>
+                            <p>Penser que le "gré à gré" est interdit. Il est autorisé mais <strong>strictement exceptionnel</strong> et encadré par des conditions précises.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Lequel de ces principes n'est PAS un principe fondamental des marchés publics selon l'Article 6 ?",
+                    options: [
+                        "L'égalité devant la commande publique",
+                        "La préférence systématique aux entreprises étrangères",
+                        "La transparence des procédures",
+                        "La liberté d'accès à la commande publique"
+                    ],
+                    correct: 1,
+                    explanation: "La préférence nationale existe (Art. 26) mais la préférence étrangère n'est absolument pas un principe. Les 3 autres sont les piliers de l'Art. 6."
+                }
+            },
+            {
+                id: 'm2',
+                title: "2. Types de marchés",
+                content: `
+                    <h2>Module 2 : La nature de l'achat</h2>
+                    <p>Les marchés publics se divisent en quatre grandes catégories définies par l'Article 2.</p>
+                    
+                    <div class="card">
+                        <h3>Les 4 natures de marchés :</h3>
+                        <ol>
+                            <li><strong>Marchés de travaux :</strong> Exécution de travaux de bâtiment ou de génie civil (ex: construction d'une école).</li>
+                            <li><strong>Marchés de fournitures :</strong> Achat, prise en crédit-bail, location de produits ou matériels.</li>
+                            <li><strong>Marchés de services :</strong> Prestations de services courantes (ex: nettoyage, gardiennage).</li>
+                            <li><strong>Marchés d'études :</strong> Prestations intellectuelles (ex: architecture, ingénierie, informatique).</li>
+                        </ol>
+                    </div>
+
+                    <div class="pedagogy-block block-success">
+                        <div class="block-icon">✅</div>
+                        <div class="block-content">
+                            <h4>Bon réflexe</h4>
+                            <p>Toujours vérifier la nature du marché car cela impacte directement la composition du dossier d'appel d'offres (les Cahiers des Clauses Techniques ou Administratives diffèrent).</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Cas pratique : Une municipalité lance une procédure pour l'élaboration d'un plan d'aménagement urbain par un cabinet de conseil. De quel type de marché s'agit-il ?",
+                    options: [
+                        "Un marché de services",
+                        "Un marché de travaux",
+                        "Un marché d'études",
+                        "Ce n'est pas un marché public"
+                    ],
+                    correct: 2,
+                    explanation: "L'élaboration d'un plan d'aménagement est une prestation purement intellectuelle. Selon le décret, cela relève des marchés d'études."
+                }
+            },
+            {
+                id: 'm3',
+                title: "3. Les Procédures",
+                content: `
+                    <h2>Module 3 : Le mode de passation</h2>
+                    <p>Comment l'acheteur public choisit-il son fournisseur ? La règle de base est la mise en concurrence.</p>
+
+                    <h3>La Règle : L'Appel d'Offres (AO) - Art. 41 et 42</h3>
+                    <p>L'appel d'offres est la procédure principale. Conformément à l'Art. 41, tout marché public doit être passé après mise en concurrence. L'Art. 42 détaille les formes d'appel d'offres possibles. Il peut être :</p>
+                    <ul>
+                        <li><strong>Ouvert :</strong> Tout candidat intéressé peut soumettre une offre.</li>
+                        <li><strong>Restreint (avec présélection) :</strong> Seuls les candidats invités suite à une présélection peuvent soumissionner (souvent pour des travaux très spécifiques).</li>
+                        <li><strong>Avec concours :</strong> Utilisé principalement pour des projets architecturaux ou d'aménagement.</li>
+                    </ul>
+
+                    <h3>L'Exception : Le Marché Négocié (Gré à Gré) - Art. 49</h3>
+                    <div class="pedagogy-block block-ref">
+                        <div class="block-icon">📘</div>
+                        <div class="block-content">
+                            <h4>Article 49</h4>
+                            <p>Les marchés de gré à gré ne peuvent être passés que dans des cas stricts : urgence impérieuse, monopole absolu d'un fournisseur, ou raisons de sécurité nationale.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Suite à des inondations dévastatrices nécessitant la réparation immédiate d'un pont menaçant de s'effondrer le jour même, quelle procédure l'acheteur doit-il utiliser ?",
+                    options: [
+                        "Un appel d'offres ouvert avec délai réduit",
+                        "Un marché négocié (gré à gré) pour urgence impérieuse",
+                        "Un concours d'architecture",
+                        "Attendre 30 jours réglementaires"
+                    ],
+                    correct: 1,
+                    explanation: "L'Article 49 autorise le recours au marché négocié en cas d'urgence impérieuse résultant de circonstances imprévisibles, ce qui est exactement le cas ici."
+                }
+            },
+            {
+                id: 'm4',
+                title: "4. Délais & Dates",
+                content: `
+                    <h2>Module 4 : La gestion du temps</h2>
+                    <p>Le respect des délais est crucial, tant pour l'acheteur que pour le soumissionnaire. Une offre arrivée hors délai est <strong>rejetée d'office</strong>.</p>
+
+                    <div class="card">
+                        <h3>Les délais clés à retenir :</h3>
+                        <ul>
+                            <li><strong>Préparation des offres (Art. 53) :</strong> Le délai minimum entre la publication de l'avis et la réception des offres est de <strong>30 jours</strong>. En cas d'urgence (dûment justifiée), il peut être réduit à 15 jours.</li>
+                            <li><strong>Validité des offres (Art. 54) :</strong> La durée de validité est de 60 jours par défaut à compter du jour suivant la date limite de réception des offres (Art. 54). Le cahier des charges peut prévoir un délai plus long, sans jamais dépasser 120 jours.</li>
+                        </ul>
+                    </div>
+
+                    <div class="pedagogy-block block-warning">
+                        <div class="block-icon">⚠️</div>
+                        <div class="block-content">
+                            <h4>Attention à l'heure exacte !</h4>
+                            <p>Si la date limite est fixée au 15 Juin à 10h00, une offre déposée au bureau d'ordre à 10h01 sera refusée. Le cachet du bureau d'ordre fait foi, ou l'horodatage sur TUNEPS.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un acheteur public publie un Appel d'Offres ouvert standard (sans urgence). Il fixe la date limite de remise des offres à 10 jours après la publication. Est-ce légal ?",
+                    options: [
+                        "Oui, l'acheteur fixe le délai qu'il souhaite",
+                        "Oui, si c'est sur TUNEPS",
+                        "Non, le délai minimum légal est de 15 jours sans urgence",
+                        "Non, le délai minimum légal est de 30 jours (Art. 53)"
+                    ],
+                    correct: 3,
+                    explanation: "Faux. L'Article 53 impose un délai minimum de 30 jours pour un appel d'offres ouvert en temps normal."
+                }
+            },
+            {
+                id: 'm5',
+                title: "5. Garanties Financières",
+                content: `
+                    <h2>Module 5 : Les cautions</h2>
+                    <p>L'État se protège contre les défaillances des entreprises via le système des cautions.</p>
+
+                    <div class="card">
+                        <h3>1. La Caution Provisoire (Art. 57)</h3>
+                        <p>Garantit que le soumissionnaire ne retirera pas son offre avant son expiration. <strong>Montant :</strong> Fixé entre 0,5 % et 1,5 % du montant estimatif des commandes, conformément à l'Art. 57. Elle est restituée aux candidats non retenus.</p>
+                        <p>⚠️ <strong>Exception importante (Art. 57) :</strong> les bureaux d'études sont dispensés de la caution provisoire lors de leur participation aux marchés publics.</p>
+                        
+                        <h3>2. La Caution Définitive (Art. 105)</h3>
+                        <p>Fournie uniquement par l'entreprise qui remporte le marché, avant la signature. Elle garantit la bonne exécution du contrat. <strong>Montant max :</strong> 3% du montant du marché s'il n'est pas assorti d'un délai de garantie, ou 10% s'il comporte un délai de garantie mais sans retenue de garantie.</p>
+
+                        <h3>3. La Retenue de Garantie (Art. 109 et Art. 110)</h3>
+                        <p>Une somme (max 10% par acompte) retenue sur les paiements pour garantir les éventuels défauts apparaissant après la réception provisoire. Remplaçable par une caution personnelle et solidaire.</p>
+                    </div>
+                `,
+                quiz: {
+                    question: "Qui doit fournir la caution provisoire ?",
+                    options: [
+                        "Uniquement l'entreprise qui gagne le marché",
+                        "Tous les soumissionnaires participant à l'appel d'offres",
+                        "L'Acheteur public",
+                        "Uniquement les entreprises étrangères"
+                    ],
+                    correct: 1,
+                    explanation: "L'Article 57 stipule que la garantie provisoire doit être jointe à l'offre par tout soumissionnaire (sauf les bureaux d'études et autres exemptions spécifiques)."
+                }
+            },
+            {
+                id: 'm6',
+                title: "6. Allotissement & Groupement",
+                content: `
+                    <h2>Module 6 : Stratégies de soumission</h2>
+                    
+                    <h3>L'Allotissement (Art. 2 et Art. 16)</h3>
+                    <p>L'acheteur divise un grand marché en plusieurs "lots" (ex: Lot 1 Peinture, Lot 2 Menuiserie). L'Art. 2 définit la notion ; l'<strong>Art. 16</strong> en précise les règles et rend l'allotissement <strong>obligatoire</strong> lorsqu'il est de nature à favoriser la participation des entreprises nationales ou à présenter des avantages techniques, financiers ou sociaux. Un soumissionnaire peut répondre à un ou plusieurs lots.</p>
+
+                    <h3>Les Groupements d'entreprises (Art. 55)</h3>
+                    <p>Si une entreprise n'a pas les capacités seule, elle peut s'associer :</p>
+                    <ul>
+                        <li><strong>Groupement Solidaire :</strong> Chaque entreprise est responsable de l'intégralité du marché. Si l'une fait faillite, l'autre doit finir le travail.</li>
+                        <li><strong>Groupement Conjoint :</strong> Chaque entreprise n'est responsable que de la partie qu'elle exécute. (Sauf le mandataire qui est souvent solidaire).</li>
+                    </ul>
+
+                    <div class="pedagogy-block block-success">
+                        <div class="block-icon">✅</div>
+                        <div class="block-content">
+                            <h4>Bon réflexe (TUNEPS)</h4>
+                            <p>En cas de groupement, la création de la réponse électronique sur TUNEPS nécessite que le mandataire initie la procédure et invite ses co-traitants en ligne.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Dans un groupement solidaire, si le partenaire chargé de l'électricité abandonne le chantier, l'entreprise de maçonnerie partenaire est-elle responsable ?",
+                    options: [
+                        "Non, chacun son métier",
+                        "Oui, elle est tenue de faire exécuter la prestation d'électricité",
+                        "L'acheteur doit annuler le marché"
+                    ],
+                    correct: 1,
+                    explanation: "C'est la définition même de la solidarité juridique (Art. 55). Le mandataire solidaire répond de la totalité de l'exécution du marché envers l'acheteur."
+                }
+            },
+            {
+                id: 'm7',
+                title: "7. Seuils des Marchés",
+                content: `
+                    <h2>Module 7 : Les Seuils Réglementaires</h2>
+                    <p>La passation d'une commande publique par la procédure des marchés publics est obligatoire lorsque le montant estimé dépasse certains seuils.</p>
+                    
+                    <div class="card">
+                        <h3>Les seuils (Art. 5)</h3>
+                        <ul>
+                            <li><strong>Travaux :</strong> 200 000 Dinars (TTC)</li>
+                            <li><strong>Fournitures et Services :</strong> 100 000 Dinars (TTC)</li>
+                            <li><strong>Études (secteur général) :</strong> 50 000 Dinars (TTC)</li>
+                            <li><strong>Études et fournitures/services TIC :</strong> 100 000 Dinars (TTC) — même seuil que les autres fournitures, mais le décret (Art. 5) les cite séparément.</li>
+                        </ul>
+                    </div>
+
+                    <div class="pedagogy-block block-warning">
+                        <div class="block-icon">⚠️</div>
+                        <div class="block-content">
+                            <h4>Erreur fréquente</h4>
+                            <p>Fractionner artificiellement les achats pour rester en dessous des seuils et éviter de passer un marché public est <strong>strictement interdit</strong> (Art. 9).</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Une commune souhaite acquérir des ordinateurs pour un montant estimé de 120 000 DT TTC. Quelle procédure doit-elle suivre ?",
+                    options: [
+                        "De simples bons de commande suffisent",
+                        "Obligation de passer un marché public (dépassement du seuil de 100 000 DT)",
+                        "L'acheteur peut diviser la commande en deux tranches de 60 000 DT"
+                    ],
+                    correct: 1,
+                    explanation: "Les ordinateurs sont des fournitures. Le montant estimé dépassant le seuil de 100 000 DT TTC, le recours à la procédure des marchés publics est obligatoire. Le fractionnement est interdit."
+                }
+            },
+            {
+                id: 'm8',
+                title: "8. Publicité et TUNEPS",
+                content: `
+                    <h2>Module 8 : La transparence par la publicité</h2>
+                    <p>Pour garantir la liberté d'accès à la commande publique, l'acheteur public a l'obligation de faire connaître ses besoins à travers la publication d'un avis d'appel d'offres.</p>
+                    
+                    <div class="pedagogy-block block-info">
+                        <div class="block-icon">💡</div>
+                        <div class="block-content">
+                            <h4>À retenir : Le système TUNEPS</h4>
+                            <p>L'utilisation du système d'achat public en ligne (TUNEPS) est devenue la règle. La publication, la soumission et l'évaluation se font de manière totalement dématérialisée.</p>
+                        </div>
+                    </div>
+
+                    <div class="pedagogy-block block-ref">
+                        <div class="block-icon">📘</div>
+                        <div class="block-content">
+                            <h4>Articles 53 et 54</h4>
+                            <p>Conformément à l'Art. 53, les avis d'appel d'offres doivent être publiés : (1) à travers le système d'achat en ligne <strong>TUNEPS</strong>, (2) par voie de presse, et (3) sur le <strong>site web des marchés publics de la Haute Instance de la Commande Publique</strong>. Le délai minimum entre la publication et la date limite de réception des offres est de 30 jours (réduit à 15 jours en cas d'urgence dûment justifiée).</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Est-il obligatoire pour une entreprise de soumissionner via le système TUNEPS pour un marché public standard en Tunisie ?",
+                    options: [
+                        "Non, le format papier est toujours privilégié par l'administration",
+                        "Oui, la dématérialisation via TUNEPS est obligatoire",
+                        "Uniquement pour les marchés de travaux"
+                    ],
+                    correct: 1,
+                    explanation: "La réglementation a généralisé l'obligation d'utiliser TUNEPS pour garantir la transparence, la traçabilité et l'égalité des chances."
+                }
+            },
+            {
+                id: 'm9',
+                title: "9. Ouverture & Évaluation",
+                content: `
+                    <h2>Module 9 : Le sort des offres</h2>
+                    <p>Une fois la date limite dépassée, deux étapes juridiquement distinctes sont organisées par l'acheteur public.</p>
+                    
+                    <div class="card">
+                        <h3>1. La Commission d'Ouverture (Art. 58 à 62)</h3>
+                        <p>Elle ouvre les plis pour vérifier la présence des documents exigés (notamment la caution provisoire). <strong>Cette séance est publique</strong>. Les soumissionnaires peuvent y assister ou suivre l'ouverture en ligne sur TUNEPS.</p>
+                        
+                        <h3>2. La Commission d'Évaluation (Art. 63 à 67)</h3>
+                        <p>Elle analyse en profondeur les offres techniques et financières. Contrairement à l'ouverture, <strong>les travaux de la commission d'évaluation sont strictement secrets</strong>. Toute communication avec les candidats est interdite, sauf demande formelle de clarification de la part de l'administration.</p>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un soumissionnaire exige d'assister à la réunion de la commission d'évaluation pour défendre les atouts de son offre technique. L'acheteur doit-il accepter ?",
+                    options: [
+                        "Oui, au nom du principe de transparence inscrit à l'article 6",
+                        "Non, les travaux d'évaluation sont secrets (Art. 63 à 67)",
+                        "Oui, si le montant du marché dépasse 1 million de dinars"
+                    ],
+                    correct: 1,
+                    explanation: "Seule la séance d'ouverture des plis est publique. L'évaluation se fait obligatoirement à huis clos pour éviter toute pression et garantir l'égalité de traitement."
+                }
+            },
+            {
+                id: 'm10',
+                title: "10. Choix et Offres Basses",
+                content: `
+                    <h2>Module 10 : Le choix du titulaire</h2>
+                    <p>L'acheteur ne choisit pas l'offre gagnante de manière arbitraire. Le décret encadre strictement les critères de sélection.</p>
+                    
+                    <div class="pedagogy-block block-ref">
+                        <div class="block-icon">📘</div>
+                        <div class="block-content">
+                            <h4>Article 63 et 64 - Critères d'attribution</h4>
+                            <p>L'acheteur doit retenir l'offre <strong>la moins disante</strong> (la moins chère) parmi les offres jugées techniquement conformes, ou l'offre <strong>la mieux-disante</strong> (combinaison d'une note technique et financière, pour les marchés complexes).</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Les Offres Anormalement Basses (OAB) - Art. 65</h3>
+                        <p>Si une offre financière semble anormalement basse par rapport à l'estimation administrative ou aux prix du marché, l'acheteur public <strong>ne peut pas la rejeter d'office</strong>.</p>
+                        <p>Il a l'obligation de demander des justifications par écrit au candidat (procédé de fabrication, conditions de travail...). Ce n'est que si ces justifications sont irrecevables que l'offre sera rejetée.</p>
+                    </div>
+                `,
+                quiz: {
+                    question: "Lors de l'évaluation financière, l'acheteur constate qu'une offre est 40% moins chère que toutes les autres et que son estimation. Que doit-il faire ?",
+                    options: [
+                        "L'accepter immédiatement car c'est très économique pour le budget de l'État",
+                        "La rejeter d'office pour éviter un risque d'abandon de chantier",
+                        "Demander des justifications écrites et détaillées avant de statuer (Art. 65)"
+                    ],
+                    correct: 2,
+                    explanation: "L'article 65 impose le contradictoire : l'acheteur doit demander des détails et justifications au candidat avant de pouvoir rejeter une offre considérée comme anormalement basse."
+                }
+            },
+            {
+                id: 'm11',
+                title: "11. Exécution & Pénalités",
+                content: `
+                    <h2>Module 11 : La vie du marché</h2>
+                    <p>La signature du contrat n'est que le début. La phase d'exécution comporte des règles très strictes.</p>
+
+                    <div class="card">
+                        <h3>Les Avenants (Art. 87)</h3>
+                        <p>Si des modifications (augmentation de volume, prestations supplémentaires) sont nécessaires en cours d'exécution, un avenant peut être signé, à condition qu'il ne bouleverse pas l'économie générale du marché.</p>
+
+                        <h3>Les Pénalités de retard (Art. 171)</h3>
+                        <p>Si le titulaire dépasse les délais d'exécution prévus sans justification valable, des pénalités s'appliquent automatiquement sur ses paiements. C'est <strong>plafonné à 5% du montant définitif du marché</strong>, sauf disposition contraire expressément prévue dans le cahier des charges (Art. 171).</p>
+                    </div>
+
+                    <div class="pedagogy-block block-warning">
+                        <div class="block-icon">⚠️</div>
+                        <div class="block-content">
+                            <h4>Résiliation (Art. 118 et Art. 119)</h4>
+                            <p>En cas de faute grave, d'abandon de chantier, de fraude, ou si le plafond des pénalités de retard est atteint, l'acheteur public est en droit de résilier le marché aux torts exclusifs de l'entreprise. Cela entraîne généralement la confiscation de la caution définitive.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un entrepreneur a pris beaucoup de retard. Les pénalités calculées par l'acheteur atteignent 25% du montant du marché. Cette situation est-elle réglementaire ?",
+                    options: [
+                        "Oui, il faut sanctionner le retard peu importe le montant",
+                        "Non, la réglementation impose un plafond maximum aux pénalités",
+                        "Les pénalités de retard sont illégales dans les marchés publics tunisiens"
+                    ],
+                    correct: 1,
+                    explanation: "Les pénalités de retard ne sont pas illimitées, elles sont plafonnées selon l'Art. 171. Si le plafond est atteint, l'acheteur doit plutôt envisager la résiliation."
+                }
+            },
+            {
+                id: 'm12',
+                title: "12. Règlement des Litiges",
+                content: `
+                    <h2>Module 12 : En cas de conflit</h2>
+                    <p>Les litiges liés aux marchés publics sont fréquents (retards de paiement, réception refusée, désaccord sur l'interprétation des prix, etc.).</p>
+                    
+                    <div class="pedagogy-block block-info">
+                        <div class="block-icon">💡</div>
+                        <div class="block-content">
+                            <h4>Procédure amiable en priorité</h4>
+                            <p>Le décret privilégie le règlement à l'amiable. Les parties doivent d'abord chercher un terrain d'entente. Un <strong>Comité Consultatif de Règlement Amiable des Litiges</strong>, unique, est institué auprès du Chef du Gouvernement (Art. 185). Il est composé de 3 membres : un conseiller au Tribunal Administratif (président), un représentant de la Haute Instance de la Commande Publique, et un représentant de l'organisation professionnelle concernée. Il dispose de 3 mois pour rendre un avis confidentiel et non opposable en justice.</p>
+                        </div>
+                    </div>
+                    
+                    <p>En cas d'échec total de la phase amiable (ou absence de réponse de l'administration), le titulaire peut porter le litige devant le tribunal compétent (généralement le Tribunal Administratif).</p>
+                `,
+                quiz: {
+                    question: "En cas de litige financier bloquant avec l'administration, le titulaire doit-il immédiatement intenter un procès au Tribunal Administratif ?",
+                    options: [
+                        "Oui, c'est le seul moyen d'obtenir une réponse rapide",
+                        "Non, il faut obligatoirement privilégier le recours amiable d'abord",
+                        "Il doit arrêter les travaux immédiatement en guise de protestation"
+                    ],
+                    correct: 1,
+                    explanation: "Le recours à l'amiable est la voie réglementaire privilégiée et souvent un préalable avant de pouvoir saisir les tribunaux."
+                }
+            },
+            {
+                id: 'm13',
+                title: "13. Régimes préférentiels",
+                content: `
+                    <h2>Module 13 : Incitations pour PME et entreprises locales</h2>
+                    <p>Le décret prévoit des mécanismes pour soutenir l'économie nationale et les petites et moyennes entreprises.</p>
+                    
+                    <div class="card">
+                        <h3>Réservation aux PME (Art. 20)</h3>
+                        <p>L'acheteur public doit réserver au moins <strong>20% du montant annuel estimé de ses marchés</strong> aux PME. La définition de la PME dépend de son chiffre d'affaires et des seuils par catégorie de marché.</p>
+                        
+                        <h3>Préférence Nationale (Art. 22 à 26)</h3>
+                        <ul>
+                            <li><strong>Marge de préférence (Art. 26) :</strong> Une marge de 10% est accordée aux entreprises tunisiennes et aux produits d'origine tunisienne (pour les marchés de travaux et fournitures). La comparaison se fait droits et taxes compris.</li>
+                            <li><strong>Sous-traitance (Art. 22-24) :</strong> Incitation à associer des sous-traitants nationaux pour les soumissionnaires étrangers.</li>
+                            <li><strong>Égalité (Art. 25) :</strong> Interdiction stricte d'inclure des conditions éliminatoires ciblant spécifiquement les entreprises tunisiennes.</li>
+                        </ul>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un soumissionnaire étranger présente une offre de 1 000 000 DT. Une entreprise tunisienne offre 1 090 000 DT pour la même qualité. Laquelle est retenue ?",
+                    options: [
+                        "L'offre étrangère, car elle est la moins disante",
+                        "L'entreprise tunisienne, car son offre ne dépasse pas de plus de 10% l'offre étrangère",
+                        "L'acheteur doit annuler l'appel d'offres"
+                    ],
+                    correct: 1,
+                    explanation: "L'entreprise tunisienne est retenue. L'Article 26 accorde une marge de préférence de 10% en faveur des offres tunisiennes lors de la comparaison financière."
+                }
+            },
+            {
+                id: 'm14',
+                title: "14. Prix des marchés",
+                content: `
+                    <h2>Module 14 : La détermination et l'évolution des prix</h2>
+                    
+                    <div class="card">
+                        <h3>Nature des prix (Art. 34)</h3>
+                        <p>Un marché peut être conclu à prix forfaitaire, à prix unitaires, ou selon une formule mixte.</p>
+                        
+                        <h3>Prix Ferme et Actualisation (Art. 36)</h3>
+                        <p>Le prix ferme ne peut être modifié pendant l'exécution. Toutefois, une <strong>actualisation</strong> est de droit si le délai entre la <strong>date de présentation de l'offre</strong> et la notification du marché — ou, le cas échéant, l'émission de l'<strong>ordre de service de commencement d'exécution</strong> — dépasse <strong>120 jours</strong> (Art. 36). Le titulaire doit en faire la demande écrite, accompagnée de tous justificatifs.</p>
+                        
+                        <h3>Prix Révisable (Art. 37)</h3>
+                        <p>Applicable uniquement si la durée d'exécution prévue dépasse <strong>1 an</strong> (ou 6 mois pour des marchés de travaux, de fournitures de biens et d'équipements dont les principales composantes sont liées à des <strong>prix à fluctuation rapide</strong>). Attention : Les 3 premiers mois d'exécution sont toujours réglés au prix initial.</p>
+                        
+                        <h3>Prix Provisoires (Art. 38)</h3>
+                        <p>Utilisés de façon exceptionnelle (urgence impérieuse ou aléas techniques majeurs). Un avenant fixant le prix définitif doit obligatoirement intervenir dès que les conditions sont connues.</p>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un marché de fournitures à prix ferme est notifié 140 jours après le dépôt de l'offre. Le titulaire peut-il demander une actualisation ?",
+                    options: [
+                        "Non, un prix ferme ne change jamais",
+                        "Oui, car le délai dépasse 120 jours",
+                        "Seulement si l'inflation dépasse 5%"
+                    ],
+                    correct: 1,
+                    explanation: "Oui, selon l'Article 36, l'actualisation est possible car le délai dépasse 120 jours. Il devra en faire la demande écrite avec les justificatifs nécessaires."
+                }
+            },
+            {
+                id: 'm15',
+                title: "15. Avances obligatoires",
+                content: `
+                    <h2>Module 15 : Le préfinancement des marchés</h2>
+                    <p>Pour soulager la trésorerie des entreprises, le décret prévoit le versement d'avances sous certaines conditions (délai d'exécution > 3 mois et présentation d'une caution de restitution).</p>
+                    
+                    <div class="card">
+                        <h3>1. Avance facultative (Art. 93)</h3>
+                        <p>Jusqu'à 10% du montant <strong>payable en dinars</strong>, selon la nature du marché :</p>
+                        <ul>
+                            <li><strong>Travaux :</strong> 10% du montant des travaux prévus en dinars (si délai > 1 an : 10% de la part des 12 premiers mois seulement).</li>
+                            <li><strong>Fournitures, équipements et matériels :</strong> 10% du montant.</li>
+                            <li><strong>Études (hors TIC) :</strong> 10% du montant payable en dinars.</li>
+                        </ul>
+                        <p>Non cumulable avec les avances obligatoires de l'Art. 94.</p>
+                        
+                        <h3>2. Avances obligatoires (Art. 94)</h3>
+                        <ul>
+                            <li><strong>PME, artisans et moyennes entreprises :</strong> 20% sur la part d'exécution des 12 premiers mois.</li>
+                            <li><strong>Informatique/TIC :</strong> 20% pour les marchés d'études et de l'industrie du contenu, 10% pour les services TIC.</li>
+                        </ul>
+                        
+                        <h3>3. Avance minimale garantie (Art. 95)</h3>
+                        <p>Si le CCAP ne prévoit pas un taux supérieur, le titulaire peut exiger une avance de <strong>5% du montant initial</strong> (plafonnée à 100 000 DT) sur demande écrite, sous réserve de présenter une <strong>caution personnelle et solidaire de remboursement</strong> (Art. 92).</p>
+                    </div>
+                `,
+                quiz: {
+                    question: "Une PME remporte un marché de travaux de 500 000 DT d'une durée de 18 mois. Quel taux d'avance obligatoire peut-elle exiger ?",
+                    options: [
+                        "5% du montant global",
+                        "10% car ce sont des travaux",
+                        "20% du montant prévu pour les 12 premiers mois"
+                    ],
+                    correct: 2,
+                    explanation: "L'Article 94 garantit une avance obligatoire de 20% de la part d'exécution des 12 premiers mois pour les PME, à condition de fournir une caution de remboursement."
+                }
+            },
+            {
+                id: 'm16',
+                title: "16. Plan prévisionnel",
+                content: `
+                    <h2>Module 16 : La programmation des achats</h2>
+                    <p>La commande publique nécessite une anticipation et une transparence dès le début de l'année.</p>
+                    
+                    <div class="pedagogy-block block-info">
+                        <div class="block-icon">💡</div>
+                        <div class="block-content">
+                            <h4>Le Plan Prévisionnel (Art. 8)</h4>
+                            <p>Chaque acheteur public a l'obligation d'élaborer un plan prévisionnel annuel de passation des marchés en début d'année, en cohérence avec son budget.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Procédure et publication</h3>
+                        <ul>
+                            <li>Transmission à la commission de contrôle compétente <strong>avant fin février</strong>.</li>
+                            <li>Publication obligatoire sur le site national des marchés publics <strong>au plus tard 30 jours avant</strong> le lancement de toute procédure.</li>
+                            <li><strong>Exceptions :</strong> urgence impérieuse dûment justifiée ou marchés touchant à la sûreté/défense nationale.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="pedagogy-block block-warning">
+                        <div class="block-icon">⚠️</div>
+                        <div class="block-content">
+                            <h4>Fractionnement interdit (Art. 9)</h4>
+                            <p>Il est formellement interdit de scinder ses besoins annuels en petits achats pour échapper aux seuils de compétence des commissions ou pour éviter de publier un appel d'offres.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un ministère veut lancer un appel d'offres le 1er mars. Au plus tard à quelle date le plan prévisionnel détaillant ce marché doit-il être publié sur le portail national ?",
+                    options: [
+                        "Le 1er mars au matin",
+                        "Au plus tard le 30 janvier",
+                        "Le 28 février"
+                    ],
+                    correct: 1,
+                    explanation: "L'Article 8 impose la publication du plan prévisionnel au moins 30 jours avant le lancement effectif de la procédure. 30 jours avant le 1er mars correspond au 30 janvier (29 janvier en année bissextile)."
+                }
+            },
+            {
+                id: 'm17',
+                title: "17. Commissions de contrôle",
+                content: `
+                    <h2>Module 17 : Le contrôle préalable des marchés</h2>
+                    <p>Avant d'approuver ou d'attribuer un marché dépassant certains seuils, l'acheteur doit obtenir l'avis favorable d'une commission de contrôle indépendante.</p>
+                    
+                    <div class="card">
+                        <h3>Les 4 niveaux de commissions (Art. 157-164)</h3>
+                        <p>La compétence dépend du montant estimé et du type d'achat pour l'État et les E.P :</p>
+                        <ul>
+                            <li><strong>1. Commission locale / communale :</strong> 
+                                Travaux ≤ 2 M DT | Fournitures/Services ≤ 400 k DT | Études ≤ 150 k DT</li>
+                            <li><strong>2. Commission régionale :</strong>
+                                Travaux ≤ 5 M DT | Fournitures/Services ≤ 1 M DT | Études ≤ 200 k DT</li>
+                            <li><strong>3. Commission départementale (ministérielle) :</strong>
+                                Travaux ≤ 10 M DT | Fournitures/biens/services ≤ 4 M DT | Biens informatiques ≤ 4 M DT | Études ≤ 300 k DT</li>
+                            <li><strong>⚠️ Cas particulier — Logiciels et services informatiques :</strong>
+                                Communale ≤ 300 k DT | Régionale ≤ 500 k DT | Départementale ≤ 2 M DT | Supérieure au-delà — soit des seuils <strong>inférieurs</strong> à ceux des autres fournitures (Art. 164).</li>
+                            <li><strong>4. Commission supérieure de contrôle et d'audit :</strong>
+                                Pour tous les marchés dont le montant dépasse les seuils départementaux.</li>
+                        </ul>
+                        <p><em>*Note : Pour les entreprises publiques, la commission interne gère jusqu'à 10 M DT pour les travaux, la commission supérieure gère le reste.</em></p>
+                    </div>
+                    
+                    <div class="pedagogy-block block-ref">
+                        <div class="block-icon">📘</div>
+                        <div class="block-content">
+                            <h4>Force de décision (Art. 162)</h4>
+                            <p>L'avis de la commission de contrôle a force de décision pour les ordonnateurs publics.</p>
+                        </div>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un établissement public (non entreprise publique) veut passer un marché de fournitures estimé à 3 500 000 DT. Quelle commission est compétente pour le contrôler ?",
+                    options: [
+                        "La commission communale",
+                        "La commission régionale",
+                        "La commission départementale"
+                    ],
+                    correct: 2,
+                    explanation: "Pour des fournitures dont le montant est de 3,5 Millions DT (entre 1M et 4M DT), c'est la commission départementale qui est compétente selon l'Article 164."
+                }
+            },
+            {
+                id: 'm18',
+                title: "18. Recours et litiges",
+                content: `
+                    <h2>Module 18 : Contestation et règlement des différends</h2>
+                    <p>Le décret organise des voies de recours précises pour les soumissionnaires s'estimant lésés lors de la passation, ou pour les titulaires lors de l'exécution.</p>
+                    
+                    <div class="card">
+                        <h3>Pendant la phase de passation (Art. 180-184)</h3>
+                        <ul>
+                            <li><strong>Recours gracieux (Art. 180) :</strong> Doit être déposé auprès de l'acheteur public dans les <strong>5 jours ouvrables</strong> suivant la décision contestée. Le silence vaut rejet au bout de 5 jours.</li>
+                            <li><strong>Comité de suivi et d'enquête (Art. 181-184) :</strong> Si le recours gracieux échoue, le candidat a 5 jours ouvrables pour saisir ce comité. Cette saisine suspend automatiquement les procédures. Le comité a <strong>20 jours ouvrables</strong> pour rendre son avis, qui a force de décision.</li>
+                        </ul>
+                        
+                        <h3>Pendant la phase d'exécution (Art. 185-190)</h3>
+                        <ul>
+                            <li><strong>Règlement amiable :</strong> Avant d'aller en justice, l'affaire est souvent soumise à un comité consultatif de règlement amiable (composé de 3 membres : magistrat du tribunal administratif, représentant HICP, et représentant professionnel).</li>
+                            <li>Ce comité a <strong>3 mois</strong> pour rendre un avis. Cet avis est confidentiel et non opposable en justice.</li>
+                        </ul>
+                    </div>
+                `,
+                quiz: {
+                    question: "Un soumissionnaire non retenu reçoit la notification de l'attribution le 10 mars. Quel est le dernier jour pour déposer un recours gracieux auprès de l'acheteur ?",
+                    options: [
+                        "Le 10 mars + 5 jours calendaires",
+                        "Le 10 mars + 5 jours ouvrables",
+                        "Le 31 mars"
+                    ],
+                    correct: 1,
+                    explanation: "L'Article 180 accorde un délai de 5 jours ouvrables pour le recours gracieux. Les samedis, dimanches et jours fériés ne comptent pas."
+                }
+            },
+            {
+                id: 'exam',
+                title: "📝 Évaluation Finale",
+                content: `
+                    <h2>Examen Final - Certification d'acquis</h2>
+                    <p>Ce test final de 20 questions couvre l'ensemble du Décret 2014-1039 étudié. Vous devez obtenir au moins 70% pour réussir.</p>
+                    <button class="btn btn-primary" onclick="startFinalExam()" style="margin-top: 20px; font-size:1.2rem; padding: 15px 30px;">Démarrer l'examen</button>
+                `,
+                quiz: null // handled by custom function
+            }
+        ];
+
+        const finalExamQuestions = [
+            {
+                q: "Quel texte réglemente actuellement les marchés publics en Tunisie ?",
+                options: ["Le Code du Commerce", "Le Décret n°2014-1039", "La Loi de Finances", "Le Code des Obligations et des Contrats"],
+                correct: 1,
+                explanation: ""
+            },
+            {
+                q: "Quel est le délai minimum de réception des offres pour un Appel d'Offres ouvert sans urgence ?",
+                options: ["10 jours", "15 jours", "21 jours", "30 jours"],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                q: "Laquelle de ces procédures est considérée comme exceptionnelle ?",
+                options: ["L'Appel d'offres ouvert", "L'Appel d'offres restreint", "Le marché négocié (gré à gré)", "Le concours"],
+                correct: 2,
+                explanation: ""
+            },
+            {
+                q: "A quel moment l'entreprise retenue doit-elle fournir la caution définitive ?",
+                options: ["Lors du dépôt de l'offre", "Après la notification du marché et avant le début d'exécution (dans un délai de 20 jours)", "Lors de la réception provisoire", "A la fin des travaux"],
+                correct: 1,
+                explanation: "L'Art. 76 dispose que le cautionnement définitif doit être constitué après la notification du marché, dans un délai de 20 jours. Ce n'est qu'à ce moment que le cautionnement provisoire est restitué au titulaire."
+            },
+            {
+                q: "Quelle est la limite maximale légale de la caution définitive selon les conditions du marché (Art. 105) ?",
+                options: ["1% dans tous les cas", "3% dans tous les cas", "3% sans délai de garantie, 10% avec délai de garantie sans retenue", "10% dans tous les cas"],
+                correct: 2,
+                explanation: "L'Art. 105 prévoit un taux maximum de 3% s'il n'y a pas de délai de garantie, et 10% si le marché comporte un délai de garantie mais sans retenue de garantie."
+            },
+            {
+                q: "Un marché ayant pour objet l'élaboration d'un logiciel sur mesure est un marché de :",
+                options: ["Travaux", "Fournitures", "Services", "Études"],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                q: "Qu'est-ce que l'allotissement ?",
+                options: ["Payer en plusieurs fois", "Diviser la commande en plusieurs lots autonomes", "Rallonger le délai d'exécution", "Sous-traiter la totalité du marché"],
+                correct: 1,
+                explanation: ""
+            },
+            {
+                q: "La caution provisoire est-elle restituée aux candidats dont l'offre n'a pas été retenue ?",
+                options: ["Oui, de plein droit", "Non, elle est acquise à l'État", "Oui, mais avec des pénalités", "Seulement s'ils le demandent au juge"],
+                correct: 0,
+                explanation: ""
+            },
+            {
+                q: "Le principe de transparence implique notamment :",
+                options: ["De choisir le moins disant sans réfléchir", "La publication des résultats d'attribution", "De publier le budget détaillé de l'acheteur", "De supprimer toutes les cautions"],
+                correct: 1,
+                explanation: ""
+            },
+            {
+                q: "Que se passe-t-il si un soumissionnaire dépose son offre au bureau d'ordre 5 minutes après l'heure limite fixée dans l'avis ?",
+                options: ["Elle est acceptée avec pénalité", "Elle est acceptée si l'ouverture n'a pas commencé", "Elle est rejetée et renvoyée non ouverte", "Le président de la commission décide"],
+                correct: 2,
+                explanation: ""
+            },
+            {
+                q: "Quel est le seuil de passation obligatoire d'un marché public pour des Travaux ?",
+                options: ["50 000 DT TTC", "100 000 DT TTC", "200 000 DT TTC", "500 000 DT TTC"],
+                correct: 2,
+                explanation: ""
+            },
+            {
+                q: "Concernant la Commission d'évaluation des offres (Art. 63 à 67) :",
+                options: ["Ses travaux sont publics et ouverts à tous", "Ses travaux sont strictement secrets", "Ses travaux sont diffusés en direct sur TUNEPS", "Ses travaux sont publics uniquement pour les groupements"],
+                correct: 1,
+                explanation: ""
+            },
+            {
+                q: "Face à une offre financière qui semble anormalement basse, l'acheteur doit :",
+                options: ["La rejeter d'office pour protéger le projet", "Demander au préalable des justifications écrites au candidat", "L'accepter immédiatement pour faire des économies", "Annuler la procédure d'appel d'offres"],
+                correct: 1,
+                explanation: "L'Art. 65 exige de demander des justifications écrites avant tout rejet."
+            },
+            {
+                q: "Les pénalités de retard imposées à un titulaire de marché sont-elles limitées ?",
+                options: ["Non, elles s'appliquent jusqu'à la fin des travaux", "Oui, elles sont soumises à un plafond défini dans le cahier des charges (Art. 171)", "Les pénalités sont illégales", "Elles sont plafonnées à 50% du marché"],
+                correct: 1,
+                explanation: ""
+            },
+            {
+                q: "Quelle est la marge de préférence accordée aux entreprises tunisiennes par rapport aux offres étrangères (Art. 26) ?",
+                options: ["5%", "10%", "15%", "20%"],
+                correct: 1,
+                explanation: "L'Art. 26 prévoit une marge de 10% lors de la comparaison financière."
+            },
+            {
+                q: "Un marché à prix ferme peut être actualisé si le délai entre le dépôt de l'offre et la notification dépasse :",
+                options: ["30 jours", "60 jours", "90 jours", "120 jours"],
+                correct: 3,
+                explanation: "L'Art. 36 autorise l'actualisation au-delà de 120 jours."
+            },
+            {
+                q: "Pour bénéficier d'une avance, quelle condition minimale de durée d'exécution le marché doit-il remplir ?",
+                options: ["1 mois", "3 mois", "6 mois", "12 mois"],
+                correct: 1,
+                explanation: "L'Art. 93 et suivants exigent un délai d'exécution supérieur à 3 mois."
+            },
+            {
+                q: "À quelle date limite l'acheteur public doit-il publier son plan prévisionnel annuel de passation des marchés ?",
+                options: ["Fin janvier", "Fin février", "31 mars", "30 jours avant la fin de l'année"],
+                correct: 1,
+                explanation: "L'Art. 8 exige la transmission et publication avant fin février."
+            },
+            {
+                q: "Un marché de travaux de 12 millions de DT pour un ministère relève de la compétence de :",
+                options: ["La commission régionale", "La commission départementale", "La commission supérieure de contrôle et d'audit", "La commission communale"],
+                correct: 2,
+                explanation: "Le plafond départemental est de 10M DT pour les travaux. Au-delà, la compétence revient à la commission supérieure (Art. 164)."
+            },
+            {
+                q: "Quel est le délai maximum accordé au Comité de suivi et d'enquête pour rendre sa décision après réception du dossier complet (Art. 181) ?",
+                options: ["5 jours ouvrables", "10 jours ouvrables", "20 jours ouvrables", "30 jours"],
+                correct: 2,
+                explanation: "L'Art. 181 accorde 20 jours ouvrables à ce comité pour rendre sa décision."
+            }
+        ];
+
+        /* ==========================================================================
+           STATE MANAGEMENT
+           ========================================================================== */
+        let currentIndex = 0;
+        let progress = JSON.parse(localStorage.getItem('mp_progress')) || {};
+        let finalExamState = { active: false, currentQ: 0, score: 0, answers: [] };
+
+        /* ==========================================================================
+           INITIALIZATION & RENDER
+           ========================================================================== */
+        function init() {
+            renderSidebar();
+            loadModule(currentIndex);
+            updateProgressUI();
+        }
+
+        function renderSidebar() {
+            const menu = document.getElementById('nav-menu');
+            menu.innerHTML = '';
+            
+            modules.forEach((mod, index) => {
+                const li = document.createElement('li');
+                li.className = `nav-item ${index === currentIndex ? 'active' : ''} ${progress[mod.id] ? 'completed' : ''}`;
+                li.onclick = () => {
+                    if (window.innerWidth <= 768) toggleSidebar();
+                    loadModule(index);
+                };
+                li.innerHTML = mod.title;
+                menu.appendChild(li);
+            });
+        }
+
+        function loadModule(index) {
+            if (index < 0 || index >= modules.length) return;
+            
+            currentIndex = index;
+            const mod = modules[currentIndex];
+            finalExamState.active = false; // Reset exam state if navigating away
+
+            document.getElementById('top-title').innerText = mod.title;
+            
+            let html = `<div class="module-content animate-fade-in">${mod.content}</div>`;
+
+            // Append inline quiz if exists
+            if (mod.quiz) {
+                html += renderInlineQuiz(mod.quiz, mod.id);
+            }
+
+            // Append Navigation
+            html += `
+                <div class="navigation-buttons">
+                    <button class="btn btn-outline" onclick="loadModule(${currentIndex - 1})" ${currentIndex === 0 ? 'disabled style="opacity:0.5"' : ''}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Précédent
+                    </button>
+                    ${currentIndex === modules.length - 1 ? '' : `
+                    <button class="btn btn-primary" onclick="markCompleteAndNext('${mod.id}')">
+                        Suivant <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                    `}
+                </div>
+            `;
+
+            document.getElementById('app-content').innerHTML = html;
+            renderSidebar();
+        }
+
+        function renderInlineQuiz(quiz, modId) {
+            let optionsHtml = quiz.options.map((opt, i) => 
+                `<button class="quiz-option" id="quiz-${modId}-opt-${i}" onclick="handleInlineQuiz('${modId}', ${i}, ${quiz.correct})">
+                    ${String.fromCharCode(65 + i)}. ${opt}
+                </button>`
+            ).join('');
+
+            return `
+                <div class="card quiz-container">
+                    <h3 style="margin-top:0; color: var(--primary);">🧠 Cas Pratique / Quiz</h3>
+                    <p style="font-weight: 500;">${quiz.question}</p>
+                    <div class="quiz-options">
+                        ${optionsHtml}
+                    </div>
+                    <div id="quiz-feedback-${modId}" class="feedback-box">
+                        <strong id="quiz-feedback-title-${modId}"></strong>
+                        <p id="quiz-feedback-text-${modId}" style="margin-top: 5px;"></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ==========================================================================
+           INTERACTION LOGIC
+           ========================================================================== */
+        window.handleInlineQuiz = function(modId, selectedIdx, correctIdx) {
+            const quiz = modules.find(m => m.id === modId).quiz;
+            const container = document.getElementById(`quiz-feedback-${modId}`);
+            const title = document.getElementById(`quiz-feedback-title-${modId}`);
+            const text = document.getElementById(`quiz-feedback-text-${modId}`);
+
+            // Reset options style & disable
+            quiz.options.forEach((_, i) => {
+                let btn = document.getElementById(`quiz-${modId}-opt-${i}`);
+                btn.className = "quiz-option";
+                btn.disabled = true;
+                if (i === correctIdx) btn.classList.add("correct");
+            });
+
+            let selectedBtn = document.getElementById(`quiz-${modId}-opt-${selectedIdx}`);
+
+            if (selectedIdx === correctIdx) {
+                selectedBtn.classList.add("correct");
+                container.className = "feedback-box show feedback-correct";
+                title.innerText = "✅ Bonne réponse !";
+            } else {
+                selectedBtn.classList.add("wrong");
+                container.className = "feedback-box show feedback-wrong";
+                title.innerText = "❌ Mauvaise réponse";
+            }
+
+            text.innerText = quiz.explanation;
+
+            // Auto-mark module as completed upon answering
+            progress[modId] = true;
+            saveProgress();
+        };
+
+        window.markCompleteAndNext = function(modId) {
+            progress[modId] = true;
+            saveProgress();
+            loadModule(currentIndex + 1);
+        };
+
+        function saveProgress() {
+            localStorage.setItem('mp_progress', JSON.stringify(progress));
+            updateProgressUI();
+            renderSidebar();
+        }
+
+        function updateProgressUI() {
+            const total = modules.length;
+            const completed = Object.keys(progress).length;
+            const pct = Math.round((completed / total) * 100);
+            document.getElementById('progress-text').innerText = `${pct}% complété`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        /* ==========================================================================
+           FINAL EXAM LOGIC
+           ========================================================================== */
+        window.startFinalExam = function() {
+            finalExamState = { active: true, currentQ: 0, score: 0, answers: [] };
+            renderExamQuestion();
+        }
+
+        function renderExamQuestion() {
+            const qIndex = finalExamState.currentQ;
+            if (qIndex >= finalExamQuestions.length) {
+                renderExamResults();
+                return;
+            }
+
+            const qData = finalExamQuestions[qIndex];
+            
+            let optionsHtml = qData.options.map((opt, i) => 
+                `<button class="quiz-option" onclick="handleExamAnswer(${i})">
+                    ${opt}
+                </button>`
+            ).join('');
+
+            const html = `
+                <div class="card animate-fade-in">
+                    <div style="text-align:right; font-size:0.9rem; color:var(--text-muted);">Question ${qIndex + 1} / ${finalExamQuestions.length}</div>
+                    <h3 style="margin-top: 10px;">${qData.q}</h3>
+                    <div class="quiz-options">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('app-content').innerHTML = html;
+        }
+
+        window.handleExamAnswer = function(selectedIdx) {
+            const qData = finalExamQuestions[finalExamState.currentQ];
+            if (selectedIdx === qData.correct) {
+                finalExamState.score++;
+            }
+            finalExamState.answers.push(selectedIdx);
+            finalExamState.currentQ++;
+            renderExamQuestion();
+        }
+
+        function renderExamResults() {
+            const total = finalExamQuestions.length;
+            const score = finalExamState.score;
+            const pct = Math.round((score / total) * 100);
+            
+            let circleClass = "score-poor";
+            let msg = "Il va falloir revoir le décret.";
+            if (pct >= 80) { circleClass = "score-excellent"; msg = "Félicitations ! Vous êtes un expert des marchés publics."; }
+            else if (pct >= 60) { circleClass = "score-good"; msg = "Bon résultat ! Les bases sont acquises."; }
+            else if (pct >= 40) { circleClass = "score-average"; msg = "Passable, mais des révisions sont nécessaires."; }
+
+            progress['exam'] = pct >= 70; // Pass mark
+            saveProgress();
+
+            let correctionsHtml = finalExamQuestions.map((q, i) => {
+                const isCorrect = finalExamState.answers[i] === q.correct;
+                return `
+                    <div style="padding: 10px; border-bottom: 1px solid var(--border); ${!isCorrect ? 'background-color: var(--danger-light);' : ''}">
+                        <div style="font-weight: bold;">${i+1}. ${q.q}</div>
+                        <div style="color: ${isCorrect ? 'var(--success)' : 'var(--danger)'};">
+                            ${isCorrect ? '✅ Bonne réponse' : '❌ Vous avez répondu : ' + q.options[finalExamState.answers[i]]}
+                        </div>
+                        ${!isCorrect ? `<div style="font-size: 0.9rem; color: var(--text-muted);">La bonne réponse était : <strong>${q.options[q.correct]}</strong></div>` : ''}
+                        ${q.explanation ? `<div style="font-size: 0.9rem; margin-top: 5px; color: var(--ref); border-left: 2px solid var(--ref); padding-left: 8px;"><em>Note : ${q.explanation}</em></div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const html = `
+                <div class="exam-score animate-fade-in">
+                    <h2>Résultat de l'Évaluation</h2>
+                    <div class="score-circle ${circleClass}">${pct}%</div>
+                    <p style="font-size: 1.2rem; margin-bottom: 20px;">Score : ${score} / ${total}</p>
+                    <p><strong>${msg}</strong></p>
+                    <button class="btn btn-outline" style="margin-top: 15px;" onclick="startFinalExam()">Refaire le test</button>
+                </div>
+                
+                <div class="card">
+                    <h3>Détail de la correction</h3>
+                    ${correctionsHtml}
+                </div>
+            `;
+            
+            document.getElementById('app-content').innerHTML = html;
+        }
+
+        // Run app
+        window.onload = init;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simul-Marchés - Parcours Soumissionnaire (v3)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="text-slate-800 h-screen overflow-hidden selection:bg-blue-200">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const SCENARIO_DATA = [
+            {
+                id: 1,
+                category: "AVANT DÉPÔT",
+                title: "Accès à l'information",
+                context: "Vous préparez une offre. Le cahier des charges (DAO) exige une étude technique, mais vous remarquez que certains plans essentiels manquent pour chiffrer précisément votre proposition.",
+                question: "Que devez-vous faire en tant que soumissionnaire ?",
+                choices: [
+                    {
+                        text: "Demander par écrit à l'acheteur public de fournir les plans manquants bien avant la date limite.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Vous avez droit à une information complète. L'acheteur a l'obligation de communiquer ces éclaircissements à tous les candidats ayant retiré le cahier des charges.",
+                        article: "Art. 6 & 58"
+                    },
+                    {
+                        text: "Chiffrer approximativement en incluant une marge de risque, sans alerter l'acheteur.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "RISQUE COMMERCIAL : Ne pas lever une ambiguïté vous expose à proposer une offre inadaptée ou trop chère. Utilisez votre droit à demander des clarifications.",
+                        article: "Art. 6"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                category: "AVANT DÉPÔT",
+                title: "Allotissement et capacité",
+                context: "L'appel d'offres est divisé en 5 lots. Vous êtes une PME et vous n'avez la capacité financière et technique que pour réaliser 2 lots maximum.",
+                question: "Pouvez-vous soumissionner uniquement pour ces 2 lots ?",
+                choices: [
+                    {
+                        text: "Oui, je peux choisir librement le ou les lots pour lesquels je soumissionne.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "FACULTÉ ENCADRÉE : Sauf disposition contraire du cahier des charges limitant le nombre de lots par soumissionnaire, chaque lot constitue une unité autonome.",
+                        article: "Art. 2 & 18"
+                    },
+                    {
+                        text: "Non, je dois obligatoirement faire une offre globale pour l'ensemble des 5 lots.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : L'allotissement a justement pour but de faciliter l'accès des PME à la commande publique. Vous n'êtes pas tenu de soumissionner pour tous les lots.",
+                        article: "Art. 18"
+                    }
+                ]
+            },
+            {
+                id: 3,
+                category: "AVANT DÉPÔT",
+                title: "Groupement d'entreprises",
+                context: "Vous souhaitez vous associer à une autre entreprise pour présenter une offre commune. Le cahier des charges n'impose pas de forme de groupement spécifique.",
+                question: "Comment est définie votre responsabilité selon le type de groupement choisi ?",
+                choices: [
+                    {
+                        text: "En groupement solidaire, chacun est engagé pour la totalité du marché. En conjoint, chacun s'engage uniquement sur sa partie.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "FACULTÉ ENCADRÉE : Le décret (Art. 55) autorise les offres communes. La distinction solidaire/conjoint et ses effets relèvent cependant du droit commun et des CCAP. En groupement solidaire, l'engagement financier est total.",
+                        article: "Art. 55 & Droit commun"
+                    },
+                    {
+                        text: "Dans tous les groupements, seul le mandataire est responsable juridiquement et financièrement face à l'acheteur.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "RISQUE JURIDIQUE : Faux. En groupement solidaire, l'acheteur peut se retourner contre n'importe quel membre pour l'exécution totale du marché.",
+                        article: "Art. 55"
+                    }
+                ]
+            },
+            {
+                id: 4,
+                category: "AVANT DÉPÔT",
+                title: "Délai de préparation",
+                context: "Un appel d'offres international est publié, mais l'acheteur n'accorde que 15 jours pour la remise des offres. Ce délai vous semble insuffisant pour préparer un dossier complexe.",
+                question: "L'acheteur a-t-il respecté la réglementation ?",
+                choices: [
+                    {
+                        text: "Non, le délai minimum est généralement de 30 jours, extensible selon la complexité.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Vous avez droit à un délai raisonnable. L'article 63 fixe un minimum de 30 jours (sauf urgence motivée) à compter de la publication.",
+                        article: "Art. 63"
+                    },
+                    {
+                        text: "Oui, l'acheteur est libre de fixer le délai qu'il souhaite selon ses propres urgences.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Les délais sont strictement encadrés par le décret pour garantir l'égalité d'accès et une véritable mise en concurrence.",
+                        article: "Art. 63"
+                    }
+                ]
+            },
+            {
+                id: 5,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Caution provisoire",
+                context: "Vous finalisez votre dossier de soumission. Le montant de l'offre est important et la caution provisoire exigée représente 1% du montant estimé du marché.",
+                question: "Sous quelle forme devez-vous présenter cette caution ?",
+                choices: [
+                    {
+                        text: "Elle doit être fournie sous forme de garantie bancaire à première demande ou chèque certifié.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "OBLIGATION : La caution provisoire atteste du sérieux de votre offre. Elle doit respecter un formalisme strict bancaire ou postal.",
+                        article: "Art. 104"
+                    },
+                    {
+                        text: "Je peux simplement signer une déclaration sur l'honneur m'engageant à la payer si je gagne.",
+                        isCorrect: false,
+                        penalty: 20,
+                        feedback: "RISQUE D'ÉLIMINATION IMMÉDIATE : Une simple déclaration est irrecevable. L'absence de la caution provisoire formelle entraîne le rejet automatique de l'offre.",
+                        article: "Art. 104"
+                    }
+                ]
+            },
+            {
+                id: 6,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Dépôt des variantes",
+                context: "Vous avez une solution technique innovante, plus économique que celle décrite dans le cahier des charges, mais elle s'écarte des spécifications de base.",
+                question: "Pouvez-vous proposer cette variante ?",
+                choices: [
+                    {
+                        text: "Uniquement si le cahier des charges autorise expressément les variantes, et je dois quand même proposer une offre de base.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "FACULTÉ ENCADRÉE : Les variantes ne sont examinées que si le DAO les prévoit. L'offre de base reste obligatoire, sauf mention contraire.",
+                        article: "Art. 33"
+                    },
+                    {
+                        text: "Oui, je propose uniquement ma solution innovante car elle est plus avantageuse pour l'Etat.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "RISQUE D'ÉLIMINATION : Si vous ne répondez pas à la solution de base (sauf si le DAO dispense de l'offre de base), votre offre sera jugée non conforme.",
+                        article: "Art. 33"
+                    }
+                ]
+            },
+            {
+                id: 7,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Séparation des offres",
+                context: "Vous mettez en page votre offre. Pour gagner du temps et économiser du papier, vous envisagez de relier ensemble l'offre technique et l'offre financière.",
+                question: "Est-ce une pratique autorisée ?",
+                choices: [
+                    {
+                        text: "Non, je dois obligatoirement placer l'offre technique et l'offre financière dans des enveloppes séparées et fermées.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "OBLIGATION : Le système des enveloppes multiples est impératif. Le prix ne doit jamais être dévoilé lors de l'évaluation technique.",
+                        article: "Art. 66"
+                    },
+                    {
+                        text: "Oui, l'essentiel est que toutes les pièces exigées par le cahier des charges soient présentes.",
+                        isCorrect: false,
+                        penalty: 20,
+                        feedback: "RISQUE D'ÉLIMINATION : Mettre le prix dans l'offre technique vicie la procédure. Votre offre sera systématiquement écartée.",
+                        article: "Art. 66"
+                    }
+                ]
+            },
+            {
+                id: 8,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Retard de dépôt",
+                context: "Suite à un embouteillage, votre coursier arrive au bureau d'ordre de l'acheteur 10 minutes après l'heure limite fixée pour la réception des offres.",
+                question: "Votre offre sera-t-elle acceptée ?",
+                choices: [
+                    {
+                        text: "Non, l'offre sera rejetée et me sera restituée non ouverte.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "RISQUE D'ÉLIMINATION : Les délais sont stricts. Toute offre parvenue après la date et l'heure limites est irrecevable (le cachet du bureau d'ordre faisant foi).",
+                        article: "Art. 66"
+                    },
+                    {
+                        text: "Oui, 10 minutes est un retard tolérable si je prouve la force majeure (embouteillage).",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Il n'y a aucune tolérance pour le retard de dépôt des offres. La ponctualité est une obligation absolue.",
+                        article: "Art. 66"
+                    }
+                ]
+            },
+            {
+                id: 9,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Retrait de l'offre",
+                context: "Vous venez de déposer votre offre au bureau d'ordre. Une heure plus tard, vous réalisez une grave erreur de calcul en votre défaveur. L'ouverture des plis n'a pas encore eu lieu.",
+                question: "Pouvez-vous récupérer votre offre ?",
+                choices: [
+                    {
+                        text: "Oui, je peux retirer ou modifier mon offre à tout moment avant la date et l'heure limites de dépôt.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Tant que la date limite n'est pas dépassée, vous pouvez retirer votre pli ou soumettre une offre annule et remplace.",
+                        article: "Art. 66"
+                    },
+                    {
+                        text: "Non, une fois le pli enregistré au bureau d'ordre, il devient la propriété de l'administration.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Votre engagement ne devient irrévocable qu'à l'expiration de la date limite de réception des offres.",
+                        article: "Art. 66"
+                    }
+                ]
+            },
+            {
+                id: 10,
+                category: "DÉPÔT DE L'OFFRE",
+                title: "Pratiques anti-concurrentielles",
+                context: "Un concurrent vous contacte pour vous proposer de vous répartir les lots : il soumissionne sur le lot 1 et vous laisse le lot 2 sans concurrence. En échange, vous majorez vos prix.",
+                question: "Que risquez-vous en acceptant cet arrangement ?",
+                choices: [
+                    {
+                        text: "Une exclusion des marchés publics, la confiscation des cautions et des poursuites pénales.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "INTERDICTION ABSOLUE : Les ententes préalables et pratiques frauduleuses sont lourdement sanctionnées (exclusion, sanctions pénales). L'acheteur déclarera l'appel d'offres infructueux.",
+                        article: "Art. 69 & 177"
+                    },
+                    {
+                        text: "Rien de grave, c'est une simple négociation commerciale entre opérateurs privés.",
+                        isCorrect: false,
+                        penalty: 20,
+                        feedback: "TRÈS GRAVE : Il s'agit d'une entente illicite qui fausse la libre concurrence, strictement interdite par le décret.",
+                        article: "Art. 69 & 177"
+                    }
+                ]
+            },
+            {
+                id: 11,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Séance d'ouverture",
+                context: "La date d'ouverture des plis est arrivée. Vous souhaitez assister à la séance pour connaître l'identité de vos concurrents et les montants proposés.",
+                question: "Avez-vous le droit d'y assister ?",
+                choices: [
+                    {
+                        text: "Oui, la séance d'ouverture des offres est publique. Je peux y assister ou m'y faire représenter.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Le principe de transparence garantit une séance publique. Les noms, montants et rabais y sont lus à haute voix.",
+                        article: "Art. 71"
+                    },
+                    {
+                        text: "Non, les commissions d'ouverture se réunissent toujours à huis clos pour garantir le secret.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Seule l'évaluation des offres se fait à huis clos. L'ouverture est publique.",
+                        article: "Art. 71"
+                    }
+                ]
+            },
+            {
+                id: 12,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Omission d'un document administratif",
+                context: "Lors de l'ouverture publique, la commission constate qu'il manque votre attestation fiscale dans le dossier administratif.",
+                question: "Votre offre est-elle immédiatement rejetée ?",
+                choices: [
+                    {
+                        text: "Non, la commission doit m'accorder un délai supplémentaire pour régulariser ce document administratif.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Sauf pour la caution provisoire, l'acheteur doit vous octroyer un délai (généralement 3 à 10 jours) pour compléter le dossier administratif.",
+                        article: "Art. 71"
+                    },
+                    {
+                        text: "Oui, tout dossier incomplet est éliminé d'office sans aucun recours possible.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Le décret permet la régularisation des pièces administratives manquantes pour ne pas éliminer des offres avantageuses sur la forme.",
+                        article: "Art. 71"
+                    }
+                ]
+            },
+            {
+                id: 13,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Omission de la caution provisoire",
+                context: "Lors de la même séance d'ouverture, la commission constate que vous avez oublié d'inclure la caution provisoire.",
+                question: "Pouvez-vous bénéficier du délai de régularisation ?",
+                choices: [
+                    {
+                        text: "Non, l'absence de caution provisoire entraîne le rejet immédiat et irrévocable de l'offre.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "RISQUE D'ÉLIMINATION IMMÉDIATE : La caution provisoire est la seule pièce administrative qui ne souffre d'aucune régularisation a posteriori.",
+                        article: "Art. 71"
+                    },
+                    {
+                        text: "Oui, comme pour l'attestation fiscale, on me donnera un délai pour la fournir.",
+                        isCorrect: false,
+                        penalty: 20,
+                        feedback: "FAUX : L'article 71 exclut formellement la caution provisoire du droit à régularisation.",
+                        article: "Art. 71"
+                    }
+                ]
+            },
+            {
+                id: 14,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Erreur arithmétique",
+                context: "La commission d'évaluation décèle une erreur de multiplication dans votre bordereau des prix (Quantité x Prix Unitaire différent du Total).",
+                question: "Comment cette erreur est-elle traitée ?",
+                choices: [
+                    {
+                        text: "La commission corrige le total en se basant sur le prix unitaire en toutes lettres, qui fait foi.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "RÈGLE D'ÉVALUATION : Les erreurs arithmétiques sont rectifiées. En cas de discordance, le prix unitaire écrit en toutes lettres prévaut toujours.",
+                        article: "Art. 73"
+                    },
+                    {
+                        text: "Mon offre est éliminée car elle contient une rature ou une erreur de calcul.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : L'erreur matérielle de calcul n'est pas éliminatoire, elle est corrigée par la commission selon des règles préétablies.",
+                        article: "Art. 73"
+                    }
+                ]
+            },
+            {
+                id: 15,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Demande d'éclaircissement par l'acheteur",
+                context: "La commission d'évaluation vous envoie un courrier vous demandant d'expliquer une ambiguïté dans votre méthodologie technique.",
+                question: "Que pouvez-vous répondre ?",
+                choices: [
+                    {
+                        text: "Je fournis l'explication demandée sans modifier ni le contenu ni le prix de mon offre initiale.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "OBLIGATION : Vous devez répondre, mais cet éclaircissement ne doit en aucun cas aboutir à une modification de l'essence de l'offre ou de son prix.",
+                        article: "Art. 74"
+                    },
+                    {
+                        text: "J'en profite pour améliorer ma proposition technique et proposer un rabais supplémentaire.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "INTERDICTION : Toute modification de l'offre lors d'une demande d'éclaircissement est illégale et sera ignorée.",
+                        article: "Art. 74"
+                    }
+                ]
+            },
+            {
+                id: 16,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Tentative de négociation",
+                context: "L'acheteur public vous appelle discrètement. Il vous dit : « Votre offre technique est la meilleure, mais vous êtes 5% trop cher. Si vous baissez votre prix, on signe. »",
+                question: "Que devez-vous faire ?",
+                choices: [
+                    {
+                        text: "Refuser poliment. La négociation des prix est strictement interdite en appel d'offres.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "INTERDICTION ABSOLUE : Sauf procédures spécifiques (marché négocié, dialogue compétitif), aucune négociation sur le prix n'est permise.",
+                        article: "Art. 66"
+                    },
+                    {
+                        text: "Accepter immédiatement et envoyer un nouveau devis remisé pour sécuriser le marché.",
+                        isCorrect: false,
+                        penalty: 20,
+                        feedback: "RISQUE MAJEUR : Accepter vous rend complice d'un vice de procédure qui annulera le marché et vous expose à des poursuites.",
+                        article: "Art. 66"
+                    }
+                ]
+            },
+            {
+                id: 17,
+                category: "OUVERTURE & ÉVALUATION",
+                title: "Offre anormalement basse",
+                context: "L'acheteur juge votre offre anormalement basse par rapport à son estimation. Il envisage de la rejeter.",
+                question: "Quels sont vos droits ?",
+                choices: [
+                    {
+                        text: "L'acheteur doit me demander par écrit des justifications sur la composition de mes prix avant de pouvoir me rejeter.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : L'acheteur ne peut pas rejeter d'office. Vous avez le droit de justifier vos prix (procédés de fabrication, conditions favorables...).",
+                        article: "Art. 65"
+                    },
+                    {
+                        text: "L'acheteur a le droit discrétionnaire de m'éliminer s'il craint que je ne puisse pas réaliser les travaux.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Le rejet d'une offre anormalement basse doit obligatoirement être précédé d'une procédure contradictoire de demande d'explications.",
+                        article: "Art. 65"
+                    }
+                ]
+            },
+            {
+                id: 18,
+                category: "ATTRIBUTION",
+                title: "Préférence nationale",
+                context: "Vous êtes une entreprise tunisienne face à une entreprise étrangère. L'offre de l'étranger est légèrement moins chère (de 5%).",
+                question: "Pouvez-vous quand même remporter le marché ?",
+                choices: [
+                    {
+                        text: "Oui, car les produits et entreprises tunisiennes bénéficient d'une marge de préférence allant jusqu'à 10%.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : La réglementation accorde une préférence nationale. Si l'écart de prix est inférieur à 10%, l'offre tunisienne est préférée.",
+                        article: "Art. 26"
+                    },
+                    {
+                        text: "Non, c'est toujours le moins-disant absolu qui l'emporte, quelle que soit sa nationalité.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Le principe du moins-disant s'applique, mais après application de la marge de préférence nationale de 10%.",
+                        article: "Art. 26"
+                    }
+                ]
+            },
+            {
+                id: 19,
+                category: "ATTRIBUTION",
+                title: "Information du rejet",
+                context: "Vous receivez un courrier vous informant que votre offre n'a pas été retenue. Aucun motif n'est précisé.",
+                question: "Avez-vous le droit de connaître les raisons de votre échec ?",
+                choices: [
+                    {
+                        text: "Oui, je peux exiger par écrit que l'acheteur me communique les motifs détaillés du rejet de mon offre.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : L'acheteur a l'obligation de vous notifier le rejet avec les motifs (pourquoi vous avez échoué, et les avantages de l'attributaire) si vous le demandez.",
+                        article: "Art. 79"
+                    },
+                    {
+                        text: "Non, le choix de l'administration est souverain et n'a pas à être justifié publiquement.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : La transparence exige que chaque candidat évincé puisse comprendre les raisons de son rejet pour s'améliorer ou contester.",
+                        article: "Art. 79"
+                    }
+                ]
+            },
+            {
+                id: 20,
+                category: "ATTRIBUTION",
+                title: "Période de Standstill",
+                context: "L'acheteur publie les résultats de l'appel d'offres et veut signer le contrat avec le gagnant le lendemain.",
+                question: "L'acheteur respecte-t-il la procédure ?",
+                choices: [
+                    {
+                        text: "Non, il doit respecter un délai de suspension (standstill) d'au moins 5 jours ouvrables avant de signer.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Ce délai est conçu pour vous permettre d'exercer un recours si vous estimez avoir été injustement évincé avant la signature finale.",
+                        article: "Art. 74"
+                    },
+                    {
+                        text: "Oui, s'il est pressé, rien ne lui interdit de signer dès la proclamation des résultats.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : La signature précipitée est illégale et prive les candidats non retenus de leur droit de recours.",
+                        article: "Art. 74"
+                    }
+                ]
+            },
+            {
+                id: 21,
+                category: "ATTRIBUTION",
+                title: "Restitution de la caution provisoire",
+                context: "Vous n'avez pas été retenu. L'acheteur tarde à vous rendre votre caution provisoire, bloquant ainsi votre trésorerie.",
+                question: "Quand devez-vous récupérer cette caution ?",
+                choices: [
+                    {
+                        text: "Dès l'expiration du délai de validité des offres ou à la notification du choix définitif.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : L'acheteur doit restituer les cautions des non-retenus sans délai après l'attribution ou à la fin de la validité des offres.",
+                        article: "Art. 104"
+                    },
+                    {
+                        text: "Seulement à la fin des travaux du candidat gagnant.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Votre caution ne peut être retenue en otage. Seul l'attributaire maintient sa garantie jusqu'à la caution définitive.",
+                        article: "Art. 104"
+                    }
+                ]
+            },
+            {
+                id: 22,
+                category: "EXÉCUTION",
+                title: "Caution définitive",
+                context: "Bravo, vous êtes l'attributaire du marché ! Le contrat vous est notifié officiellement.",
+                question: "Dans quel délai devez-vous constituer la caution définitive (max 3%) ?",
+                choices: [
+                    {
+                        text: "Dans les 20 jours suivant la notification de l'approbation du marché.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "OBLIGATION : L'Art. 105 régit la caution définitive. Attention, le délai de 20 jours (Art. 76) correspond au délai maximal pour la restitution de votre caution provisoire APRÈS constitution de la caution définitive, et non au délai légal strict pour la constituer.",
+                        article: "Art. 76 & 105"
+                    },
+                    {
+                        text: "Je peux la fournir au moment du premier paiement de facture.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "RISQUE DE RÉSILIATION : Le marché sera annulé et votre caution provisoire saisie si la caution définitive n'est pas fournie dans les temps fixés.",
+                        article: "Art. 76 & 105"
+                    }
+                ]
+            },
+            {
+                id: 23,
+                category: "EXÉCUTION",
+                title: "Avances",
+                context: "Le marché est signé, mais vous avez besoin de trésorerie pour acheter les matériaux et démarrer le chantier.",
+                question: "Avez-vous droit à une avance ?",
+                choices: [
+                    {
+                        text: "Oui, je peux demander l'avance prévue au contrat (généralement 10% à 20%) contre une caution bancaire de restitution d'avance.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Les avances (sur commande, sur approvisionnement) sont un droit si elles sont prévues, moyennant une garantie équivalente.",
+                        article: "Art. 92"
+                    },
+                    {
+                        text: "Non, dans les marchés publics, on n'est payé qu'après service fait.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Pour soulager la trésorerie des entreprises, le décret prévoit explicitement un système d'avances.",
+                        article: "Art. 92"
+                    }
+                ]
+            },
+            {
+                id: 24,
+                category: "EXÉCUTION",
+                title: "Retenue de garantie",
+                context: "L'acheteur retient 10% sur chacune de vos factures au titre de la retenue de garantie, ce qui assèche votre trésorerie.",
+                question: "Pouvez-vous éviter ces ponctions ?",
+                choices: [
+                    {
+                        text: "Oui, je peux remplacer cette retenue par une caution bancaire personnelle et solidaire du même montant.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "FACULTÉ ENCADRÉE : Vous avez le droit de substituer une garantie bancaire à la retenue de garantie (Art. 112) pour préserver votre liquidité.",
+                        article: "Art. 109-110 & 112"
+                    },
+                    {
+                        text: "Non, la retenue sur facture est incontournable jusqu'à la réception définitive.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Le code permet expressément la substitution par une garantie bancaire pour ne pas pénaliser l'entreprise.",
+                        article: "Art. 109-110 & 112"
+                    }
+                ]
+            },
+            {
+                id: 25,
+                category: "EXÉCUTION",
+                title: "Sous-traitance en cours de marché",
+                context: "Pendant l'exécution, vous souhaitez confier une partie des travaux à une autre entreprise (sous-traitant) que vous n'aviez pas déclarée dans votre offre.",
+                question: "Comment procéder ?",
+                choices: [
+                    {
+                        text: "Je dois obligatoirement demander l'agrément préalable de l'acheteur public sur l'identité et les conditions de paiement de ce sous-traitant.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "OBLIGATION : La sous-traitance est possible, mais l'acheteur doit l'approuver formellement. Le sous-traitant peut alors bénéficier du paiement direct.",
+                        article: "Art. 88"
+                    },
+                    {
+                        text: "Je m'arrange directement avec mon sous-traitant, l'acheteur n'a de lien contractuel qu'avec moi.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "INTERDICTION : Une sous-traitance occulte est une cause de résiliation aux torts de l'entrepreneur.",
+                        article: "Art. 88"
+                    }
+                ]
+            },
+            {
+                id: 26,
+                category: "EXÉCUTION",
+                title: "Force Majeure",
+                context: "Une inondation exceptionnelle et imprévisible détruit votre chantier, entraînant 2 mois de retard.",
+                question: "Devrez-vous payer les pénalités de retard ?",
+                choices: [
+                    {
+                        text: "Non, si je notifie la force majeure par écrit dans les délais, je serai exonéré des pénalités pour cette période.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Le décret (Art. 171) organise les pénalités. L'exonération pour force majeure n'est pas codifiée textuellement dans le décret mais relève du droit commun des obligations. Il faut notifier et prouver l'événement rapidement.",
+                        article: "Art. 171 & Droit commun"
+                    },
+                    {
+                        text: "Oui, l'entreprise assume tous les risques météorologiques sans exception.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Si les conditions de la force majeure (imprévisible, irrésistible) sont réunies, le droit commun vous protège contre l'application des pénalités de retard prévues au marché.",
+                        article: "Art. 171 & Droit commun"
+                    }
+                ]
+            },
+            {
+                id: 27,
+                category: "EXÉCUTION",
+                title: "Retard de paiement",
+                context: "Vous avez livré les fournitures et déposé votre facture conforme, mais l'acheteur tarde à vous payer (plus de 45 jours).",
+                question: "Quels sont vos droits ?",
+                choices: [
+                    {
+                        text: "J'ai droit au paiement d'intérêts moratoires pour retard de paiement.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Le retard de l'administration dans l'ordonnancement ou le paiement ouvre droit, de plein droit, à des intérêts moratoires.",
+                        article: "Art. 101"
+                    },
+                    {
+                        text: "Je n'ai aucun droit, l'administration paie quand les fonds sont disponibles.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : Le décret protège les entreprises contre les délais de paiement abusifs de l'Etat.",
+                        article: "Art. 101"
+                    }
+                ]
+            },
+            {
+                id: 28,
+                category: "LITIGES & RECOURS",
+                title: "Recours gracieux",
+                context: "Votre offre a été rejetée et, après avoir demandé les motifs, vous estimez que l'acheteur a commis une erreur de droit flagrante dans l'évaluation.",
+                question: "Quelle est votre première étape de contestation ?",
+                choices: [
+                    {
+                        text: "Adresser un recours gracieux motivé au représentant légal de l'acheteur public dans les 5 jours de la notification.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Le recours gracieux est la première étape (souvent pendant le délai de standstill) pour tenter de faire rectifier la décision.",
+                        article: "Art. 180"
+                    },
+                    {
+                        text: "Saisir immédiatement le Tribunal Administratif.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "MAUVAISE STRATÉGIE : Bien que possible, il est légalement prévu et bien plus rapide d'utiliser le recours gracieux puis le COSEM.",
+                        article: "Art. 180"
+                    }
+                ]
+            },
+            {
+                id: 29,
+                category: "LITIGES & RECOURS",
+                title: "Saisine du COSEM",
+                context: "L'acheteur a rejeté votre recours gracieux. Vous souhaitez faire appel à l'instance de contrôle supérieure (le COSEM).",
+                question: "Quel est l'effet de votre saisine du COSEM ?",
+                choices: [
+                    {
+                        text: "Elle suspend la signature du marché jusqu'à ce que le Comité se prononce.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : Saisir le Comité de Suivi et d'Enquête (COSEM) dans les délais a un effet suspensif, protégeant vos droits avant l'irréparable.",
+                        article: "Art. 181"
+                    },
+                    {
+                        text: "L'acheteur peut ignorer cette saisine et signer le contrat quand même.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : L'effet suspensif est une garantie fondamentale du soumissionnaire, sauf urgence impérieuse certifiée.",
+                        article: "Art. 181"
+                    }
+                ]
+            },
+            {
+                id: 30,
+                category: "LITIGES & RECOURS",
+                title: "Résiliation aux torts",
+                context: "Vous avez pris beaucoup de retard sur le chantier. L'acheteur décide de résilier le contrat à vos torts exclusifs.",
+                question: "L'acheteur peut-il rompre le contrat sans préavis ?",
+                choices: [
+                    {
+                        text: "Non, il doit obligatoirement m'adresser une mise en demeure préalable m'accordant un délai pour remédier aux défaillances.",
+                        isCorrect: true,
+                        penalty: 0,
+                        feedback: "DROIT DU SOUMISSIONNAIRE : La mise en demeure préalable (généralement 10 à 15 jours) est obligatoire pour vous permettre de vous défendre ou de rectifier le tir.",
+                        article: "Art. 119"
+                    },
+                    {
+                        text: "Oui, la puissance publique peut résilier unilatéralement un contrat à tout moment.",
+                        isCorrect: false,
+                        penalty: 10,
+                        feedback: "FAUX : La résiliation aux torts est une sanction grave qui exige le respect d'une procédure contradictoire stricte.",
+                        article: "Art. 119"
+                    }
+                ]
+            }
+        ];
+
+        function App() {
+            const [gameState, setGameState] = React.useState('home'); 
+            const [currentScenarioIndex, setCurrentScenarioIndex] = React.useState(0);
+            const [score, setScore] = React.useState(100);
+            const [results, setResults] = React.useState([]);
+            const [showFeedback, setShowFeedback] = React.useState(false);
+            const [selectedChoice, setSelectedChoice] = React.useState(null);
+
+            const startSimulation = () => {
+                setGameState('playing');
+                setCurrentScenarioIndex(0);
+                setScore(100);
+                setResults([]);
+                setShowFeedback(false);
+                setSelectedChoice(null);
+            };
+
+            const handleChoice = (choiceIndex) => {
+                if (showFeedback) return;
+                
+                const scenario = SCENARIO_DATA[currentScenarioIndex];
+                const choice = scenario.choices[choiceIndex];
+                
+                setSelectedChoice(choiceIndex);
+                setScore(prev => Math.max(0, prev - choice.penalty));
+                
+                setResults(prev => [...prev, {
+                    scenarioId: scenario.id,
+                    isCorrect: choice.isCorrect,
+                    penalty: choice.penalty
+                }]);
+                
+                setShowFeedback(true);
+            };
+
+            const nextScenario = () => {
+                if (currentScenarioIndex < SCENARIO_DATA.length - 1) {
+                    setCurrentScenarioIndex(prev => prev + 1);
+                    setShowFeedback(false);
+                    setSelectedChoice(null);
+                } else {
+                    setGameState('end');
+                }
+            };
+
+            const renderHome = () => (
+                <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 animate-fade-in">
+                    <div className="glass-panel p-10 rounded-3xl shadow-2xl max-w-2xl text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+                        <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i className="fa-solid fa-briefcase text-4xl"></i>
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-800 mb-4 tracking-tight">
+                            Simul-Marchés <br/>
+                            <span className="text-blue-600 text-3xl">Parcours Soumissionnaire</span>
+                        </h1>
+                        <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+                            Mettez-vous dans la peau d'un opérateur économique. Évaluez vos droits, vos obligations et les risques lors de la soumission à un marché public tunisien.
+                        </p>
+                        <div className="flex gap-4 justify-center">
+                            <button 
+                                onClick={startSimulation}
+                                className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                            >
+                                <i className="fa-solid fa-play mr-2"></i> Démarrer la simulation
+                            </button>
+                            <button 
+                                onClick={() => setGameState('teacher')}
+                                className="px-8 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold text-lg shadow-sm hover:shadow-md transition-all duration-300"
+                            >
+                                <i className="fa-solid fa-book-open mr-2"></i> Mode Révision
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderPlaying = () => {
+                const scenario = SCENARIO_DATA[currentScenarioIndex];
+                const progress = ((currentScenarioIndex) / SCENARIO_DATA.length) * 100;
+
+                return (
+                    <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in h-[calc(100vh-80px)] flex flex-col">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-white px-4 py-2 rounded-lg font-bold text-slate-600 shadow-sm border border-slate-100">
+                                    Cas {currentScenarioIndex + 1} / {SCENARIO_DATA.length}
+                                </div>
+                                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-md text-sm font-bold uppercase tracking-wide">
+                                    {scenario.category}
+                                </span>
+                            </div>
+                            <div className="bg-white px-5 py-2 rounded-xl shadow-sm border border-slate-100 flex items-center gap-3">
+                                <span className="text-slate-500 font-medium">Santé Entreprise</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-32 h-3 bg-slate-200 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-500 ${score > 70 ? 'bg-emerald-500' : score > 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                            style={{ width: `${score}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className={`font-black text-lg ${score > 70 ? 'text-emerald-600' : score > 40 ? 'text-amber-600' : 'text-red-600'}`}>
+                                        {score}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full bg-slate-200 h-1.5 rounded-full mb-8 overflow-hidden">
+                            <div className="bg-blue-500 h-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-20">
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 mb-6 relative overflow-hidden animate-slide-up">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                                <h2 className="text-2xl font-bold text-slate-800 mb-4">{scenario.title}</h2>
+                                <div className="bg-slate-50 p-5 rounded-xl border border-slate-100 mb-6">
+                                    <p className="text-slate-700 text-lg leading-relaxed">{scenario.context}</p>
+                                </div>
+                                <p className="font-bold text-slate-800 text-xl mb-6">
+                                    <i className="fa-solid fa-circle-question text-blue-500 mr-2"></i>
+                                    {scenario.question}
+                                </p>
+
+                                <div className="grid gap-4">
+                                    {scenario.choices.map((choice, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleChoice(idx)}
+                                            disabled={showFeedback}
+                                            className={`text-left p-5 rounded-xl border-2 transition-all duration-200 text-lg
+                                                ${showFeedback 
+                                                    ? (idx === selectedChoice 
+                                                        ? (choice.isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-900' : 'bg-red-50 border-red-500 text-red-900')
+                                                        : (choice.isCorrect ? 'bg-emerald-50 border-emerald-500 text-emerald-900 opacity-50' : 'bg-white border-slate-100 opacity-50')
+                                                      )
+                                                    : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md cursor-pointer'
+                                                }`}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className={`mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center
+                                                    ${showFeedback
+                                                        ? (idx === selectedChoice
+                                                            ? (choice.isCorrect ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-red-500 bg-red-500 text-white')
+                                                            : (choice.isCorrect ? 'border-emerald-500 text-emerald-500' : 'border-slate-300')
+                                                          )
+                                                        : 'border-slate-300'
+                                                    }`}
+                                                >
+                                                    {showFeedback && idx === selectedChoice && (
+                                                        <i className={`fa-solid ${choice.isCorrect ? 'fa-check' : 'fa-xmark'} text-xs`}></i>
+                                                    )}
+                                                </div>
+                                                <span>{choice.text}</span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {showFeedback && (
+                                <div className="animate-slide-up bg-white rounded-2xl shadow-lg border-2 border-slate-800 p-8 relative overflow-hidden">
+                                    <div className="flex items-start gap-6">
+                                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-inner
+                                            ${scenario.choices[selectedChoice].isCorrect ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                            <i className={`fa-solid ${scenario.choices[selectedChoice].isCorrect ? 'fa-scale-balanced' : 'fa-gavel'} text-3xl`}></i>
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h3 className="text-xl font-black text-slate-800">Analyse Juridique (Soumissionnaire)</h3>
+                                                <span className="bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-2">
+                                                    <i className="fa-solid fa-book"></i> {scenario.choices[selectedChoice].article}
+                                                </span>
+                                            </div>
+                                            <p className="text-slate-700 text-lg leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                                {scenario.choices[selectedChoice].feedback}
+                                            </p>
+                                            {!scenario.choices[selectedChoice].isCorrect && (
+                                                <div className="mt-4 text-red-600 font-bold flex items-center gap-2">
+                                                    <i className="fa-solid fa-arrow-trend-down"></i>
+                                                    Impact : -{scenario.choices[selectedChoice].penalty} points de viabilité
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {showFeedback && (
+                            <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-10">
+                                <div className="max-w-4xl mx-auto flex justify-end">
+                                    <button 
+                                        onClick={nextScenario}
+                                        className="px-8 py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-lg shadow-lg hover:-translate-y-1 transition-all duration-200 flex items-center gap-3"
+                                    >
+                                        {currentScenarioIndex < SCENARIO_DATA.length - 1 ? 'Cas suivant' : 'Voir le bilan final'}
+                                        <i className="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderEnd = () => {
+                const correctAnswers = results.filter(r => r.isCorrect).length;
+                let message, icon, color;
+
+                if (score >= 80) {
+                    message = "Expert de la Soumission ! Vous maîtrisez parfaitement vos droits et évitez les pièges.";
+                    icon = "fa-trophy";
+                    color = "text-emerald-500";
+                } else if (score >= 50) {
+                    message = "Opérateur averti. Quelques risques juridiques pris, mais l'essentiel est là.";
+                    icon = "fa-medal";
+                    color = "text-blue-500";
+                } else {
+                    message = "Entreprise en danger. Vos offres risquent d'être rejetées. Une révision du décret s'impose.";
+                    icon = "fa-triangle-exclamation";
+                    color = "text-red-500";
+                }
+
+                return (
+                    <div className="max-w-2xl mx-auto p-4 md:p-8 animate-fade-in text-center flex flex-col items-center justify-center min-h-[80vh]">
+                        <div className="glass-panel p-10 rounded-3xl shadow-2xl w-full relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-3 bg-slate-800"></div>
+                            <i className={`fa-solid ${icon} ${color} text-7xl mb-6 drop-shadow-lg`}></i>
+                            <h2 className="text-4xl font-black text-slate-800 mb-2">Bilan de la Simulation</h2>
+                            <p className="text-xl text-slate-600 font-medium mb-8">{message}</p>
+                            
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <div className="text-slate-500 font-bold mb-1 uppercase text-sm">Viabilité de l'Entreprise</div>
+                                    <div className={`text-5xl font-black ${score > 70 ? 'text-emerald-600' : score > 40 ? 'text-amber-600' : 'text-red-600'}`}>
+                                        {score}%
+                                    </div>
+                                </div>
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <div className="text-slate-500 font-bold mb-1 uppercase text-sm">Décisions conformes</div>
+                                    <div className="text-5xl font-black text-blue-600">
+                                        {correctAnswers}/{SCENARIO_DATA.length}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 justify-center">
+                                <button 
+                                    onClick={() => setGameState('home')}
+                                    className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors"
+                                >
+                                    Menu Principal
+                                </button>
+                                <button 
+                                    onClick={startSimulation}
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg transition-colors"
+                                >
+                                    Rejouer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderTeacher = () => {
+                const categories = [...new Set(SCENARIO_DATA.map(s => s.category))];
+
+                return (
+                    <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fade-in h-[calc(100vh-80px)] flex flex-col">
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h2 className="text-3xl font-black text-slate-800">Mode Révision (Soumissionnaire)</h2>
+                                <p className="text-slate-500">Base de données des cas jurisprudentiels simulés</p>
+                            </div>
+                            <button 
+                                onClick={() => setGameState('home')}
+                                className="px-5 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold shadow-sm transition-colors flex items-center gap-2"
+                            >
+                                <i className="fa-solid fa-arrow-left"></i> Retour
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-12 pb-10">
+                            {categories.map(cat => (
+                                <div key={cat} className="mb-8">
+                                    <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-2">
+                                        <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm">
+                                            <i className="fa-solid fa-folder-open"></i>
+                                        </span>
+                                        {cat}
+                                    </h3>
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        {SCENARIO_DATA.filter(s => s.category === cat).map(scenario => {
+                                            const correctChoice = scenario.choices.find(c => c.isCorrect);
+                                            return (
+                                                <div key={scenario.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <h4 className="font-bold text-slate-800 text-lg leading-tight">{scenario.title}</h4>
+                                                        <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider whitespace-nowrap ml-2">
+                                                            {correctChoice.article}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-600 mb-4 line-clamp-3">{scenario.context}</p>
+                                                    <div className="bg-emerald-50 text-emerald-800 p-3 rounded-lg text-sm border border-emerald-100">
+                                                        <span className="font-bold block mb-1">Règle applicable :</span>
+                                                        {correctChoice.feedback}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="h-full flex flex-col">
+                    <header className="bg-white border-b border-slate-200 py-4 px-6 shadow-sm z-20">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center text-white font-black text-xl">S</div>
+                                <div>
+                                    <h1 className="font-black text-slate-800 leading-none">Simul-Marchés</h1>
+                                    <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Soumissionnaire Expert</span>
+                                </div>
+                            </div>
+                            <div className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                                {SCENARIO_DATA.length} Cas Pratiques
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 overflow-hidden">
+                        {gameState === 'home' && renderHome()}
+                        {gameState === 'playing' && renderPlaying()}
+                        {gameState === 'end' && renderEnd()}
+                        {gameState === 'teacher' && renderTeacher()}
+                    </main>
+
+                    <footer className="bg-white py-4 text-center text-slate-400 text-xs border-t border-slate-100">
+                        © {new Date().getFullYear()} - Conforme au Décret n°2014-1039 (Parcours Soumissionnaire - v3).
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

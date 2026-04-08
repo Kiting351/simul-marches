@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portail Simul-Marchés | Formations & Simulations</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* =========================================
+           RESET & VARIABLES GLOBAL
+           ========================================= */
+        :root {
+            --bg-sidebar: #1e293b; /* Slate 800 */
+            --bg-sidebar-hover: #334155; /* Slate 700 */
+            --bg-sidebar-active: #2563eb; /* Blue 600 */
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #f1f5f9;
+        }
+
+        /* =========================================
+           BARRE DE NAVIGATION (SIDEBAR)
+           ========================================= */
+        .sidebar {
+            width: 300px;
+            background-color: var(--bg-sidebar);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            background-color: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-muted);
+            border-left: 4px solid transparent;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-sidebar-hover);
+            color: var(--text-light);
+        }
+
+        .nav-item.active {
+            background-color: var(--bg-sidebar-active);
+            color: #ffffff;
+            border-left-color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* MODIFICATION ADDITIVE : Badge de version pour chaque module */
+        .version-badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item.active .version-badge {
+            background-color: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        /* MODIFICATION ADDITIVE : Footer d'attribution dans la sidebar */
+        .sidebar-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(0, 0, 0, 0.2);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .sidebar-footer .author {
+            font-size: 0.75rem;
+            margin-top: 5px;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* =========================================
+           CONTENU PRINCIPAL (IFRAME)
+           ========================================= */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #f8fafc;
+        }
+
+        /* =========================================
+           RESPONSIVE MOBILE (Inspiré de v1-index.html)
+           ========================================= */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex: none;
+            }
+            .sidebar-header {
+                padding: 15px; /* Mode compact */
+            }
+            
+            /* MODIFICATION : Navigation horizontale scrollable, supprime le menu pliable */
+            .nav-menu {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 0;
+                white-space: nowrap;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                
+                /* Masque la barre de défilement pour un design plus propre (mobile) */
+                scrollbar-width: none; /* Firefox */
+                -webkit-overflow-scrolling: touch; /* Scroll fluide iOS */
+            }
+            .nav-menu::-webkit-scrollbar {
+                display: none; /* Chrome/Safari */
+            }
+            
+            .nav-item {
+                flex: 0 0 auto; /* Empêche les éléments de rétrécir */
+                padding: 12px 20px;
+                border-left: none; /* Annule la bordure gauche desktop */
+                border-bottom: 4px solid transparent; /* Bordure active en bas */
+            }
+            
+            .nav-item.active {
+                border-left-color: transparent;
+                border-bottom-color: #60a5fa;
+            }
+
+            /* MODIFICATION : Masquage du footer sur mobile pour économiser l'espace */
+            .sidebar-footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRE DE NAVIGATION LATERALE -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-gavel"></i> Simul-Marchés</h2>
+            <p>Portail de Formation Interactive</p>
+        </div>
+        
+        <!-- SUPPRESSION DE .mobile-toggle CONFORMÉMENT À LA CONSIGNE (Remplacé par scroll horizontal) -->
+
+        <div class="nav-menu" id="navMenu">
+            <!-- LIENS RELATIFS STRICTS POUR DRIVETOWEB (./) AVEC BADGES DE VERSION -->
+            <div class="nav-item active" onclick="loadModule('./v4-suite-marches-publics.html', this)">
+                <i class="fas fa-file-upload"></i> Simulateur de Dépôt TUNEPS
+                <span class="version-badge">v4</span>
+            </div>
+            
+            <div class="nav-item" onclick="loadModule('./v3-mp-soumissionnaire.html', this)">
+                <i class="fas fa-user-tie"></i> Parcours Soumissionnaire
+                <span class="version-badge">v3</span>
+            </div>
+            
+            <div class="nav-item" onclick="loadModule('./v7.1-mp-Acheteur.html', this)">
+                <i class="fas fa-building"></i> Parcours Acheteur Expert
+                <span class="version-badge">v7.1</span>
+            </div>
+
+            <div class="nav-item" onclick="loadModule('./v2.1-AO.html', this)">
+                <i class="fas fa-book-open"></i> Lecture de l'Avis (AO)
+                <span class="version-badge">v2.1</span>
+            </div>
+            
+            <div class="nav-item" onclick="loadModule('./v5-mp-AO.html', this)">
+                <i class="fas fa-graduation-cap"></i> E-Learning & Évaluation
+                <span class="version-badge">v5</span>
+            </div>
+        </div>
+
+        <!-- MODIFICATION ADDITIVE : Footer avec attribution auteur -->
+        <div class="sidebar-footer">
+            <p>Portail Simul-Marchés</p>
+            <p class="author">Créé par Wissem Taktak</p>
+        </div>
+    </nav>
+
+    <!-- ZONE D'AFFICHAGE DU MODULE SELECTIONNÉ -->
+    <main class="main-content">
+        <!-- Fichier par défaut chargé au lancement -->
+        <iframe 
+            id="app-frame" 
+            class="iframe-container" 
+            src="./v4-suite-marches-publics.html" 
+            title="Module Marchés Publics"
+            allowfullscreen>
+        </iframe>
+    </main>
+
+    <!-- SCRIPT DE GESTION DU PORTAIL -->
+    <script>
+        /**
+         * Fonction pour charger dynamiquement un module HTML dans l'iframe
+         * @param {string} fileName - Le chemin relatif (./fichier.html)
+         * @param {HTMLElement} btnElement - Le bouton cliqué 
+         */
+        function loadModule(fileName, btnElement) {
+            // 1. Mettre à jour la source de l'iframe
+            const iframe = document.getElementById('app-frame');
+            iframe.src = fileName;
+
+            // 2. Réinitialiser l'état de tous les boutons
+            const buttons = document.querySelectorAll('.nav-item');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 3. Mettre en surbrillance le bouton sélectionné
+            btnElement.classList.add('active');
+
+            // 4. (RÉTABLISSEMENT V1) : Centrer le bouton cliqué lors du défilement horizontal sur mobile
+            if(window.innerWidth <= 768) {
+                btnElement.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }
+        }
+        
+        // (La fonction toggleMenu a été supprimée car le menu pliable n'existe plus).
+    </script>
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appel d’Offres (TUNEPS) – Lecture pédagogique interactive</title>
+    <style>
+        /* =========================================
+           CSS INTEGRE - DESIGN ET PEDAGOGIE
+           ========================================= */
+        :root {
+            --primary-color: #0056b3;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --border-color: #dddddd;
+            --tooltip-bg: #fffbe6;
+            --tooltip-border: #ffe58f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-style: italic;
+            font-size: 0.9em;
+        }
+
+        /* Bouton Bonus Pédagogique */
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #004494;
+        }
+
+        /* Structure de l'AO */
+        section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+
+        h2 {
+            font-size: 1.3em;
+            color: #2c3e50;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .field {
+            margin: 12px 0;
+            display: flex;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .field-label {
+            font-weight: bold;
+            min-width: 280px;
+            color: #444;
+        }
+
+        .field-value {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* =========================================
+           SYSTEME D'INFOS-BULLES INTERACTIVES
+           ========================================= */
+        .tooltip {
+            cursor: pointer;
+            color: var(--primary-color);
+            margin-left: 8px;
+            position: relative;
+            display: inline-block;
+            font-size: 1.1em;
+        }
+
+        .tooltip-content {
+            display: none;
+            background: var(--tooltip-bg);
+            border: 1px solid var(--tooltip-border);
+            border-radius: 6px;
+            padding: 15px;
+            position: absolute;
+            z-index: 100;
+            width: 350px;
+            left: 30px;
+            top: -10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 0.9em;
+            color: #333;
+            text-align: left;
+            font-weight: normal;
+        }
+
+        .tooltip-content::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: -10px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent var(--tooltip-border) transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-content {
+            display: block;
+        }
+
+        .tooltip-content.show-always {
+            display: block;
+            position: relative;
+            left: 0;
+            top: 5px;
+            width: 100%;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        .tooltip-content.show-always::before {
+            display: none;
+        }
+
+        .pedago-title { color: #d35400; font-weight: bold; display: block; margin-bottom: 3px; }
+        .pedago-text { margin-bottom: 10px; display: block; }
+        
+        .legal-title { color: #2980b9; font-weight: bold; display: block; margin-bottom: 3px; }
+        .legal-text { margin-bottom: 10px; display: block; }
+
+        .example-title { color: #27ae60; font-weight: bold; display: block; margin-bottom: 3px; }
+        .example-text { display: block; font-style: italic; }
+
+        @media (max-width: 768px) {
+            .field { flex-direction: column; }
+            .tooltip-content {
+                position: fixed;
+                left: 5%;
+                top: 20%;
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Avis d’Appel d’Offres – Système TUNEPS</h1>
+        <p class="subtitle">Version pédagogique interactive annotée selon le décret n°2014-1039 (v2.1)</p>
+    </header>
+
+    <div class="controls">
+        <button id="toggleBtn" onclick="toggleAllTooltips()">📖 Afficher toutes les explications</button>
+    </div>
+
+    <!-- SECTION 1 : INFORMATIONS GENERALES -->
+    <section>
+        <h2>1. Informations générales</h2>
+
+        <div class="field">
+            <span class="field-label">En ligne :</span>
+            <span class="field-value">Oui
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Indique si le marché est entièrement dématérialisé (traité via TUNEPS) ou s'il s'agit d'une procédure papier classique (très rare aujourd'hui).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 76 et 77 du décret 2014-1039, rendant obligatoire l'utilisation du système d'achat en ligne (TUNEPS).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La mention "Oui" confirme que l'envoi physique d'un dossier par la poste entrainera son rejet systématique.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Acheteur public (Organisme) :</span>
+            <span class="field-value">Ministère de l'Équipement et de l'Habitat
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est l'entité publique (Ministère, Commune, Entreprise publique) qui a un besoin et qui lance l'achat. Elle va payer le marché.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 2 du décret 2014-1039. Définit l'acheteur public (État, collectivités locales, établissements publics).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La municipalité de Tunis ou la STEG sont des acheteurs publics soumis à ce décret.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Département :</span>
+            <span class="field-value">Direction Générale des Bâtiments Civils
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Précise la direction exacte au sein de l'organisme acheteur qui pilote techniquement et administrativement ce marché.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Principe de transparence de l'acheteur public, permettant d'identifier le service maître d'ouvrage (Article 2).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si vous avez une question technique très pointue, c'est cette direction qui va rédiger la réponse.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Responsable :</span>
+            <span class="field-value">M. le Directeur Général
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Désigne la personne physique habilitée à représenter l'acheteur public (le signataire du contrat final).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 3 : Le marché ne devient valide qu'après sa signature par l'autorité compétente de l'acheteur public.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Le Maire, le PDG de l'entreprise publique ou le Ministre délégué.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Numéro de l'Avis :</span>
+            <span class="field-value">2026-045
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Identifiant unique généré par TUNEPS pour tracer ce marché spécifique parmi des milliers d'autres.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">La numérotation fait partie des obligations de transparence et d'archivage prévues par l'utilisation du système d'information (Art 76).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Lors de toute correspondance ou recours, l'entreprise devra citer ce numéro "2026-045".</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">N° de référence :</span>
+            <span class="field-value">AO/DGBC/01/2026
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est le numéro interne de l'acheteur (différent du numéro TUNEPS généré automatiquement), utile pour le classement administratif interne.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Obligation d'identification des dossiers pour le contrôle a priori ou a posteriori (Articles 143 et suivants).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Souvent formaté : Type de marché / Direction / Numéro d'ordre / Année.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Nouvelle insertion / Modification :</span>
+            <span class="field-value">Nouvelle insertion
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Précise s'il s'agit du tout premier avis publié pour ce marché, ou s'il s'agit d'un "Avis rectificatif" (ex: modification d'une date ou d'un critère).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 62 du décret 2014-1039. En cas de modification importante, l'acheteur doit reporter la date limite de réception des offres.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">S'il est écrit "Modification", vérifiez attentivement ce qui a changé par rapport à la version précédente (souvent la date limite de dépôt).</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Date et heure de publication :</span>
+            <span class="field-value">01/10/2026 à 08h30
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est le point de départ chronométrique officiel. Tous les délais (30 jours de publication, demande d'éclaircissement) se calculent à partir de cette date exacte.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 61 du décret 2014-1039. Le délai de réception des offres doit être de 30 jours minimum (sauf urgence motivée) à partir de la publication.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si publié le 1er octobre, les PME auront légalement jusqu'au 31 octobre (minimum) pour déposer leurs offres.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Type de procédure :</span>
+            <span class="field-value">Appel d'Offres Ouvert
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est la règle de base. Toute entreprise intéressée peut télécharger le cahier des charges et participer librement.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 2 et 38 du décret 2014-1039. La mise en concurrence par appel d'offres ouvert est le principe fondamental.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise X voit l'avis et soumissionne sans avoir besoin d'une invitation préalable de l'acheteur.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Type (AO national/international) :</span>
+            <span class="field-value">National (Devise : TND)
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Un AO national cible les entreprises locales (ou étrangères installées en Tunisie). Un AO international s'ouvre aux firmes de l'étranger (paiement en devise possible).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 39 du décret 2014-1039. L'appel d'offres international est lancé si les entreprises nationales ne peuvent satisfaire le besoin, ou dans le cadre d'un financement international.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Ici (National), l'offre sera obligatoirement chiffrée et payée en Dinars Tunisiens (TND).</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Nature du marché :</span>
+            <span class="field-value">Travaux
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Catégorie de l'achat : Travaux (constructions), Fournitures (biens matériels), Études ou Services.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 2 du décret 2014-1039. Définit juridiquement chaque nature de marché, ce qui impacte ensuite les conditions (ex: les qualifications exigées).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La construction d'un lycée = Travaux. L'achat de bureaux = Fournitures.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Type de commande :</span>
+            <span class="field-value">Marché public
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Précise s'il s'agit d'un "Marché public" complet (au-dessus d'un certain seuil financier) ou d'un simple "Bon de commande". <strong>À noter :</strong> ce champ est une classification opératoire TUNEPS, et non une catégorie juridique autonome du décret, liée aux seuils financiers.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 2 du décret 2014-1039, les procédures et le formalisme diffèrent drastiquement selon le type de commande et les seuils.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Un marché public requiert une commission d'ouverture, des cautions, etc. Un bon de commande (< 100k TND pour les travaux) est beaucoup plus souple.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Marché cadre :</span>
+            <span class="field-value">Non
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Utilisé lorsque l’administration a des besoins répétitifs (ex. carburant, papier). "Non" signifie que le besoin est défini en une seule fois.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 14 du décret 2014-1039 : le marché cadre fixe un minimum/maximum sur une durée limitée.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Ici, le marché concerne un bâtiment précis à construire, donc il n'est pas "cadre".</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Marché général :</span>
+            <span class="field-value">Oui
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Le marché général (ou "Entreprise générale") regroupe toutes les prestations sous la responsabilité d'un seul contractant principal. C'est l'inverse d'un allotissement extrême.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 15 du décret 2014-1039. L'acheteur recourt au marché général s'il estime que la coordination des différents lots par ses propres moyens est techniquement impossible.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La PME qui remporte le marché général de construction devra gérer elle-même ses sous-traitants (plombiers, électriciens).</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Financement / Demande de financement :</span>
+            <span class="field-value">Budget de l'État (Loi de finance 2026)
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Origine des fonds. Cela peut aussi être "Prêt international" (ex: Banque Mondiale), ce qui changerait certaines règles.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 5 du décret 2014-1039. Obligation de s'assurer de la disponibilité des crédits budgétaires avant de lancer l'appel d'offres.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Paiement via le Trésorier Payeur Général sur le budget 2026.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 2 : OBJET ET SPÉCIFICATIONS -->
+    <section>
+        <h2>2. Objet et spécifications</h2>
+
+        <div class="field">
+            <span class="field-label">Objet de l'Appel d'Offres :</span>
+            <span class="field-value">Construction d'un centre de santé de base à Kasserine.</span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Secteur d'activité :</span>
+            <span class="field-value">Bâtiment / Génie Civil</span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Nature des prix :</span>
+            <span class="field-value">Prix Unitaires
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Prix Unitaire : l'entreprise propose un prix pour "1 mètre de câble", et l'État paiera la quantité réellement posée à la fin. (S'oppose au prix "Forfaitaire" qui est un prix global fixe pour tout le projet).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 34 à 37 du décret n°2014-1039. Définit le mode de règlement (marché à prix forfaitaire, unitaire, ou mixte, ainsi que le caractère ferme ou révisable des prix).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise indique 10 TND le m2 de carrelage. Si l'État demande 100m2, elle touchera 1000 TND. Si 110m2, elle touchera 1100 TND.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Allotissement (Divisé en lots) :</span>
+            <span class="field-value">Oui
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Le projet est découpé. Cela permet aux petites PME de postuler uniquement sur la partie qu'elles maîtrisent (ex: peinture).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 15 du décret 2014-1039. L'acheteur DOIT allotir lorsque c'est techniquement possible, pour encourager les PME.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Lot 1 : Gros œuvre. Lot 2 : Plomberie. Lot 3 : Électricité.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Possibilité de groupement :</span>
+            <span class="field-value">Oui (Conjoint ou Solidaire)
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Permet à deux ou plusieurs entreprises de s'associer juridiquement pour répondre ensemble à cet appel d'offres si elles ne sont pas assez grandes seules.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 48 du décret 2014-1039. Les groupements solidaires ou conjoints permettent de cumuler les capacités techniques et financières des PME.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Une entreprise spécialiste en ciment s'associe avec une entreprise spécialiste en fer pour remporter un marché complexe de pont.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Délai d'exécution :</span>
+            <span class="field-value">300 jours
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Le temps imparti à l'entreprise pour terminer les travaux après la signature de l'ordre de commencement.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 10 et 12 du décret 2014-1039. Les délais doivent être fixés. Tout retard entraine des pénalités financières.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si les travaux durent 310 jours, l'entreprise paiera 10 jours de pénalités de retard.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Variantes autorisées :</span>
+            <span class="field-value">Non
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Permet (ou interdit) à l'entreprise de proposer une solution technique différente mais plus performante ou moins chère que celle demandée.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 44 du décret 2014-1039. Si le cahier des charges ne mentionne pas expressément que les variantes sont autorisées, elles sont d'office rejetées.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'acheteur demande un toit en tuiles. L'entreprise propose un toit en tôle (moins cher). Si Variante=Non, cette offre sera rejetée.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Échantillons exigés :</span>
+            <span class="field-value">Non
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">L'acheteur pourrait demander de fournir un modèle physique (ex: une chaise, un morceau de carrelage) avec l'offre.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 61. Si des échantillons sont exigés, l'acheteur doit prévoir l'espace et le délai nécessaires pour leur dépôt matériel en dehors de TUNEPS.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Ici, tout se juge sur dossier technique PDF, aucun objet physique à déposer.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 3 : CONDITIONS DE PARTICIPATION -->
+    <section>
+        <h2>3. Conditions de participation</h2>
+
+        <div class="field">
+            <span class="field-label">Méthodologie (Soumission) :</span>
+            <span class="field-value">En Ligne (TUNEPS) exclusive
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Obligation d'utiliser la plateforme électronique. Aucun dossier papier ne sera accepté à la réception.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 76 et 77 du décret 2014-1039. Consacre la généralisation et l'exclusivité du système TUNEPS pour la transparence.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise signe ses documents avec une clé électronique ANCE et téléverse des PDF.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+        
+        <div class="field">
+            <span class="field-label">Prix du cahier des charges :</span>
+            <span class="field-value">Gratuit
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Avec la dématérialisation TUNEPS, le téléchargement des documents est gratuit. Auparavant, les entreprises devaient souvent payer pour retirer une copie papier.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 56 du décret 2014-1039. En ligne, les dossiers d'appel d'offres sont remis gratuitement via le système d'achat public.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise clique sur "Télécharger" et obtient instantanément le dossier PDF sans payer de redevance.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Caution provisoire exigée :</span>
+            <span class="field-value">Oui (Montant : 15 000 DT)
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Garantie bancaire bloquée par la banque de l'entreprise. Prouve le sérieux de l'offre et évite les désistements abusifs.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 46 et 47 du décret 2014-1039. Exigée par principe. Des exceptions existent pour certaines petites PME (Art 47).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si l'entreprise gagne le marché mais refuse de signer le contrat, l'État saisit ces 15 000 DT.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Type de cautionnement provisoire :</span>
+            <span class="field-value">En ligne (e-caution) / Garantie bancaire classique
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Précise comment la garantie doit être soumise. TUNEPS permet aujourd'hui aux banques d'émettre des e-cautions directement en ligne sans document papier.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 46 et 77 du décret n°2014-1039. Pratique opérationnelle mise en œuvre via TUNEPS, encadrée par les manuels de procédures et les textes postérieurs au décret 2014‑1039.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La BIAT génère une e-caution directement sur le portail TUNEPS, liant virtuellement la garantie à l'offre de l'entreprise.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Critère d'attribution :</span>
+            <span class="field-value">Le Moins Disant
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Parmi toutes les offres qui sont techniquement conformes au cahier des charges, c'est celle qui propose le prix le plus bas qui gagne.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Articles 69 et 70 du décret 2014-1039. Le "Moins disant" est la règle de base pour les travaux standardisés. L'alternative est le "Mieux disant" (qualité/prix combinés).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">A propose 100M DT (Conforme). B propose 90M DT (Conforme). C propose 80M DT (Non conforme). B remporte le marché.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Délai de validité des offres :</span>
+            <span class="field-value">120 jours
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">L'entreprise est "bloquée" et doit maintenir ses prix sans pouvoir les modifier pendant cette durée.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 45 du décret 2014-1039. Délai fixé par l'acheteur pour avoir le temps de faire les évaluations et obtenir les approbations.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si le prix du ciment augmente après la soumission, l'entreprise ne peut pas changer son prix pendant ces 120 jours.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 4 : CALENDRIER -->
+    <section>
+        <h2>4. Calendrier et Dates Clés</h2>
+
+        <div class="field">
+            <span class="field-label">Date limite de demande d'éclaircissements :</span>
+            <span class="field-value">05/11/2026
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Si le cahier des charges n'est pas clair, l'entreprise peut poser des questions via TUNEPS, mais uniquement jusqu'à cette date.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 60 du décret 2014-1039. Les demandes doivent parvenir au moins 10 jours avant la limite de dépôt pour que l'acheteur ait le temps de répondre à tous les candidats.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise demande : "De quelle couleur doivent être les portes ?". L'acheteur répondra publiquement sur TUNEPS pour tout le monde.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Visite des lieux :</span>
+            <span class="field-value">Oui, Obligatoire le 01/11/2026
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Les candidats doivent se rendre physiquement sur le terrain pour évaluer la difficulté du chantier avant de proposer un prix.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">La visite, si déclarée obligatoire, conditionne l'acceptation de l'offre. Une attestation de visite sera remise et devra être jointe au dossier.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Une entreprise qui dépose une offre sans avoir l'attestation de visite du 01/11 sera automatiquement éliminée.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+        
+        <div class="field">
+            <span class="field-label">Date/Heure de commencement envoi des offres :</span>
+            <span class="field-value">02/10/2026 à 00h00
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">La date et l'heure à partir desquelles la plateforme TUNEPS accepte techniquement le téléversement (l'upload) de vos dossiers de réponse cryptés.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Fonctionnement opérationnel de TUNEPS (Manuel des procédures en ligne).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Même si l'avis est publié le 01/10, la soumission technique pourrait n'être ouverte que le lendemain.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Date limite de réception des offres :</span>
+            <span class="field-value">15/11/2026 à 10h00
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est la minute de rigueur (la "Deadline"). Le système informatique se bloque instantanément à 10h00.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 61 du décret 2014-1039. Respect strict des délais de publicité minimaux (souvent 30 jours pour un AO national).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Un clic de soumission à 10h01 sera techniquement refusé par TUNEPS.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+        
+        <div class="field">
+            <span class="field-label">Adresse réception des offres (hors ligne) :</span>
+            <span class="field-value">Direction Générale des Bâtiments Civils (Bureau d'ordre)
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Bien que l'offre soit en ligne (TUNEPS), certains éléments (comme l'original de la caution bancaire papier ou des échantillons physiques) peuvent exceptionnellement devoir être envoyés à cette adresse physique.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 61 et manuel TUNEPS concernant les documents exigés en original (hors ligne).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise envoie son offre complète sur TUNEPS, mais dépose la caution bancaire au "Bureau d'ordre" avant l'heure limite.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+
+        <div class="field">
+            <span class="field-label">Date/Heure d'ouverture des offres :</span>
+            <span class="field-value">15/11/2026 à 10h30
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Moment précis où la commission des marchés se réunit pour décrypter les offres sur la plateforme et lire les prix. Notez le décalage (souvent 30 min) après la clôture de la réception.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 65 du décret 2014-1039. La séance d'ouverture des plis est publique et à date/heure fixées.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">La commission ouvre les dossiers cryptés sur TUNEPS et lit : "L'Entreprise A propose 1 200 000 Dinars".</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+        
+        <div class="field">
+            <span class="field-label">Lieu d'ouverture des offres :</span>
+            <span class="field-value">Salle de réunion, 4ème étage, Ministère de l'Equipement
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Adresse physique où les soumissionnaires peuvent se rendre pour assister en direct au décryptage électronique des offres.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 65 : Garantie de transparence, le public (ou du moins les soumissionnaires) est invité à y assister.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Le représentant légal de l'entreprise s'y présente à 10h20 pour s'asseoir dans le public.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 5 : INFORMATIONS PAR LOT -->
+    <section>
+        <h2>5. Informations par lot ou article</h2>
+
+        <div class="field">
+            <span class="field-label">Liste et détail des lots :</span>
+            <span class="field-value">
+                <ul>
+                    <li><strong>Lot 1 :</strong> Gros œuvre et étanchéité</li>
+                    <li><strong>Lot 2 :</strong> Électricité et plomberie</li>
+                </ul>
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">TUNEPS affiche ici un tableau détaillant chaque lot de manière isolée. Une entreprise peut choisir de répondre à un seul lot, à plusieurs, ou à tous les lots.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 15 du décret 2014-1039 (Allotissement). Favoriser l'accès des PME à la commande publique en réduisant la taille des marchés.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">L'entreprise 'ElecPro' ne cochera et ne soumettra un prix que pour le Lot 2 sur la plateforme TUNEPS.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 6 : INFORMATIONS SUR L'AGREMENT -->
+    <section>
+        <h2>6. Informations sur l'agrément</h2>
+
+        <div class="field">
+            <span class="field-label">Agréments / Qualifications exigés :</span>
+            <span class="field-value">Bâtiment (B0) - Catégorie 2 ou supérieure
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Pour garantir que l'entreprise a les capacités techniques et matérielles de faire ces travaux, l'État exige une "carte professionnelle" spécifique (L'agrément) délivrée par le Ministère.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 50 du décret 2014-1039. Le choix des candidats se fait sur la base des garanties professionnelles et financières (système de classification).</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Une entreprise "Catégorie 1" (très petite, autorisée pour des marchés de faible montant) sera automatiquement éliminée si elle postule ici.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 7 : INFORMATIONS PAR PRODUIT -->
+    <section>
+        <h2>7. Informations par produit</h2>
+
+        <div class="field">
+            <span class="field-label">Détail des lignes (Articles/Produits) :</span>
+            <span class="field-value"><em>Bordereau des prix unitaires joint en annexe technique.</em>
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">Sur TUNEPS (surtout pour les achats de fournitures), cette grille liste chaque article demandé (ex: 10 PC, 5 Imprimantes) où l'entreprise doit saisir son prix unitaire directement dans le système.</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Corollaire de l'Article 22 (Marché à prix unitaires). L'évaluation financière se fait ligne par ligne puis est globalisée.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Ligne 1 : Ciment (Tonnes). Ligne 2 : Fer à béton (Tonnes). L'entreprise remplit chaque case.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+    <!-- SECTION 8 : CAHIER DES CHARGES / DOCUMENTS -->
+    <section>
+        <h2>8. Cahier des charges (Documents)</h2>
+
+        <div class="field">
+            <span class="field-label">Fichiers téléchargeables par les candidats :</span>
+            <span class="field-value">
+                <ul>
+                    <li>📄 CCAP.pdf (Cahier des Clauses Administratives Particulières)</li>
+                    <li>📄 CCTP.pdf (Cahier des Clauses Techniques Particulières)</li>
+                    <li>📊 Bordereau_des_Prix.xls</li>
+                </ul>
+                <span class="tooltip">ℹ️
+                    <span class="tooltip-content">
+                        <span class="pedago-title">Explication :</span>
+                        <span class="pedago-text">C'est la bibliothèque documentaire du marché. Le CCAP fixe les règles du jeu juridique et financier (pénalités, paiement). Le CCTP fixe les règles techniques (normes, qualité des matériaux).</span>
+                        <span class="legal-title">Base juridique :</span>
+                        <span class="legal-text">Article 8 du décret 2014-1039. Le cahier des charges est la base contractuelle obligatoire définissant le besoin de l'acheteur public.</span>
+                        <span class="example-title">Exemple :</span>
+                        <span class="example-text">Si le CCTP exige du "ciment de classe 45", l'entreprise ne pourra pas livrer du "ciment de classe 32", sinon elle sera pénalisée ou rejetée.</span>
+                    </span>
+                </span>
+            </span>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    /* =========================================
+       JAVASCRIPT - LOGIQUE PEDAGOGIQUE
+       ========================================= */
+    let allTooltipsVisible = false;
+
+    function toggleAllTooltips() {
+        const tooltipContents = document.querySelectorAll('.tooltip-content');
+        const btn = document.getElementById('toggleBtn');
+        
+        allTooltipsVisible = !allTooltipsVisible;
+
+        tooltipContents.forEach(content => {
+            if (allTooltipsVisible) {
+                content.classList.add('show-always');
+            } else {
+                content.classList.remove('show-always');
+            }
+        });
+
+        if (allTooltipsVisible) {
+            btn.innerHTML = "📖 Masquer toutes les explications";
+        } else {
+            btn.innerHTML = "📖 Afficher toutes les explications";
+        }
+    }
+
+    // Amélioration de l'accessibilité sur mobile
+    document.querySelectorAll('.tooltip').forEach(tooltip => {
+        tooltip.addEventListener('click', function(e) {
+            if (!allTooltipsVisible && window.innerWidth <= 768) {
+                const content = this.querySelector('.tooltip-content');
+                if (content.style.display === 'block') {
+                    content.style.display = 'none';
+                } else {
+                    document.querySelectorAll('.tooltip-content').forEach(c => c.style.display = '');
+                    content.style.display = 'block';
+                }
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

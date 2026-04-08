@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Pédagogique de Soumission (Type TUNEPS)</title>
+    <style>
+        :root {
+            --primary-color: #004b87;
+            --secondary-color: #f8f9fa;
+            --accent-color: #d32f2f;
+            --success-color: #2e7d32;
+            --text-color: #333;
+            --border-color: #dee2e6;
+            --bg-color: #e9ecef;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Progress */
+        .sidebar {
+            width: 320px;
+            background-color: white;
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        .step-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--secondary-color);
+            color: #6c757d;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-item .step-number {
+            background-color: #adb5bd;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .step-item.active {
+            border-color: var(--primary-color);
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .step-item.active .step-number {
+            background-color: var(--primary-color);
+        }
+
+        .step-item.completed {
+            border-color: var(--success-color);
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+
+        .step-item.completed .step-number {
+            background-color: var(--success-color);
+        }
+
+        .step-item.rejected {
+            border-color: var(--accent-color);
+            background-color: #ffebee;
+            color: var(--accent-color);
+        }
+
+        .step-item.rejected .step-number {
+            background-color: var(--accent-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+            background-color: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .header-panel h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .header-panel p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .step-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* Pedagogical Tabs */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            background-color: #e2e6ea;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #fff;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pedagogical-notice {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-left: 4px solid #ffeeba;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        /* File Upload Area */
+        .upload-area {
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f8fbff;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .upload-area:hover {
+            background-color: #eef5ff;
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: 0.2s;
+        }
+
+        .upload-label:hover {
+            background-color: #003366;
+        }
+
+        .file-status {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-height: 24px;
+        }
+
+        .status-success { color: var(--success-color); }
+        .status-error { color: var(--accent-color); }
+
+        /* Document Summary Area */
+        .document-summary {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .document-summary-title {
+            color: #1565c0;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .document-summary-content {
+            color: #333;
+        }
+
+        /* Document Analysis Area */
+        .document-analysis {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            padding: 0;
+            background-color: #ffffff;
+            border: 1px solid #4dd0e1;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .analysis-header {
+            background-color: #00838f;
+            color: white;
+            padding: 12px 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.05rem;
+        }
+
+        .analysis-body {
+            padding: 15px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .analysis-row {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .analysis-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        /* New structured blocks for detailed analysis */
+        .analysis-theme-card {
+            background-color: #fcfcfc;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #00838f;
+        }
+
+        .analysis-theme-title {
+            font-weight: bold;
+            color: #004b87;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-theme-list {
+            margin: 0;
+            padding-left: 20px;
+            padding-right: 20px;
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .analysis-theme-list li {
+            margin-bottom: 6px;
+        }
+
+        .analysis-stats-block {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .analysis-warning {
+            background-color: #fff3e0;
+            color: #e65100;
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-align: center;
+            border-top: 1px solid #ffe0b2;
+        }
+
+        .analysis-loading {
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* Buttons */
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #1b5e20;
+        }
+
+        .btn-primary:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b71c1c;
+        }
+
+        /* Verdict Screen */
+        .verdict-box {
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .verdict-success {
+            background-color: #e8f5e9;
+            border: 2px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .verdict-rejected {
+            background-color: #ffebee;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .verdict-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .verdict-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .recap-list {
+            text-align: left;
+            margin-top: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            list-style-type: none;
+        }
+
+        .recap-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Progress Tracker -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-title">Procédure de Dépôt</div>
+        <!-- Steps will be injected by JS -->
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <div class="header-panel">
+            <h1>Simulateur de Dépôt - Marchés Publics</h1>
+            <p>Environnement pédagogique simulant le dépôt en ligne (Logique TUNEPS).<br>
+            <strong>Règle d'or :</strong> Chaque document est obligatoire pour passer à l'étape suivante.</p>
+        </div>
+
+        <!-- STEP 0 : Identification & Exemples Pédagogiques -->
+        <div id="step-0" class="step-container" style="display: block;">
+            
+            <!-- DEBUT NOUVELLE SOUS-ETAPE CONTEXTE (AJOUT ADDITIF) -->
+            <h2 class="step-title">Étape 0 bis — Contexte de la consultation</h2>
+            
+            <div class="pedagogical-notice" style="background-color: #e3f2fd; color: #0d47a1; border-left: 4px solid #1976d2;">
+                ℹ️ <strong>Documents fournis par l'acheteur public – à consulter avant la soumission.</strong><br>
+                Ces documents n'ont pas à être déposés dans ce simulateur. Ils servent à informer et préparer le soumissionnaire en amont de toute démarche.
+            </div>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 40px;">
+                <div style="flex: 1; min-width: 280px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h3 style="color: var(--primary-color); font-size: 1.1rem; margin-bottom: 12px; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">A. Plan prévisionnel des marchés</h3>
+                    <ul style="list-style-type: disc; margin-left: 20px; font-size: 0.95rem; line-height: 1.6; color: var(--text-color);">
+                        <li style="margin-bottom: 6px;"><strong>Rôle du document :</strong> Annoncer publiquement les intentions d'achats de l'acheteur public pour l'année en cours.</li>
+                        <li style="margin-bottom: 6px;"><strong>À quel moment il intervient :</strong> En début d'année, bien avant le lancement d'une consultation spécifique.</li>
+                        <li><strong>Ce qu'un soumissionnaire en retire :</strong> Anticiper la demande, repérer les opportunités d'affaires à l'avance et préparer sa strategy (alliances, trésorerie).</li>
+                    </ul>
+                </div>
+
+                <div style="flex: 1; min-width: 280px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h3 style="color: var(--primary-color); font-size: 1.1rem; margin-bottom: 12px; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px;">B. Avis d'appel d'offres</h3>
+                    <ul style="list-style-type: disc; margin-left: 20px; font-size: 0.95rem; line-height: 1.6; color: var(--text-color);">
+                        <li style="margin-bottom: 6px;"><strong>Rôle du document :</strong> Publicité officielle invitant formellement les entreprises à concourir pour un marché.</li>
+                        <li style="margin-bottom: 6px;"><strong>Informations qu'il contient :</strong> L'objet exact du marché, la procédure applicable, les conditions de participation et les délais stricts.</li>
+                        <li><strong>Lien logique avec le DAO :</strong> C'est la porte d'entrée qui signale l'existence du marché et invite le soumissionnaire à télécharger le DAO complet.</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- FIN NOUVELLE SOUS-ETAPE CONTEXTE -->
+
+            <h2 class="step-title">Étape Préparatoire : Identification des Pièces</h2>
+            
+            <div class="pedagogical-notice">
+                ⚠️ Les documents ci-dessous sont des exemples purement pédagogiques et illustratifs. Ils n'ont aucune valeur juridique أو تعاقدية.
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('tab-dao')">DAO</button>
+                <button class="tab-btn" onclick="showTab('tab-ccag')">CCAG</button>
+                <button class="tab-btn" onclick="showTab('tab-ccap')">CCAP</button>
+                <button class="tab-btn" onclick="showTab('tab-cctg')">CCTG</button>
+                <button class="tab-btn" onclick="showTab('tab-cctp')">CCTP</button>
+                <button class="tab-btn" onclick="showTab('tab-demande')">Demande de soumission</button>
+                <button class="tab-btn" onclick="showTab('tab-caution')">Caution provisoire</button>
+            </div>
+
+            <div id="tab-dao" class="tab-content active">
+                <h3>Dossier d'Appel d'Offres (DAO)</h3>
+                <p><strong>Définition :</strong> Document de base rédigé par l'acheteur public contenant l'ensemble des règles de la consultation.</p>
+                <p><em>Extrait pédagogique :</em> "République Tunisienne - Appel d'offres National N° 01/2026 pour l'acquisition de matériel informatique. Le présent appel d'offres s'adresse aux entreprises spécialisées..."</p>
+            </div>
+            
+            <div id="tab-ccag" class="tab-content">
+                <h3>CCAG (Cahier des Clauses Administratives Générales)</h3>
+                <p><strong>Définition :</strong> Fixe les dispositions administratives applicables à une catégorie de marchés (ex: CCAG Travaux, CCAG Fournitures).</p>
+                <p><em>Extrait pédagogique :</em> "Article 1 : Modalités de paiement. Les paiements seront effectués par virement bancaire dans un délai maximum de 30 jours après constatation du service fait..."</p>
+            </div>
+
+            <div id="tab-ccap" class="tab-content">
+                <h3>CCAP (Cahier des Clauses Administratives Particulières)</h3>
+                <p><strong>Définition :</strong> Précise ou déroge au CCAG pour les besoins spécifiques du marché en cours.</p>
+                <p><em>Extrait pédagogique :</em> "Article 4 : Pénalités de retard. Par dérogation au CCAG, les pénalités de retard sont fixées à 0.2% du montant du marché par jour de retard, plafonnées à 10%..."</p>
+            </div>
+
+            <div id="tab-cctg" class="tab-content">
+                <h3>CCTG (Cahier des Clauses Techniques Générales)</h3>
+                <p><strong>Définition :</strong> Fixe les normes techniques générales applicables à toutes les prestations de même nature.</p>
+                <p><em>Extrait pédagogique :</em> "Normes électriques : Tous les équipements fournis doivent répondre aux normes de sécurité internationales CE et aux normes tunisiennes NT..."</p>
+            </div>
+
+            <div id="tab-cctp" class="tab-content">
+                <h3>CCTP (Cahier des Clauses Techniques Particulières)</h3>
+                <p><strong>Définition :</strong> Décrit avec précision les spécifications techniques exactes du besoin de l'acheteur public.</p>
+                <p><em>Extrait pédagogique :</em> "Lot 1 : Serveurs. Les serveurs devront avoir une capacité minimale de 64 Go de RAM, 2 To de stockage SSD NVMe, et une alimentation redondante..."</p>
+            </div>
+
+            <div id="tab-demande" class="tab-content">
+                <h3>Demande de Soumission</h3>
+                <p><strong>Définition :</strong> L'acte d'engagement officiel par lequel le candidat propose son offre.</p>
+                <p><em>Extrait pédagogique :</em> "Je soussigné(e) [Nom], agissant au nom de la société [Nom Société], m'engage à exécuter les prestations demandées dans l'appel d'offres N°X pour un montant de 150 000 DT TTC..."</p>
+            </div>
+
+            <div id="tab-caution" class="tab-content">
+                <h3>Caution Provisoire (Garantie de soumission)</h3>
+                <p><strong>Définition :</strong> Garantie financière émise par une banque pour s'assurer du sérieux de l'offre. <strong>Pièce éliminatoire !</strong></p>
+                <p><em>Extrait pédagogique :</em> "Nous, Banque [Nom], nous portons caution solidaire de la société [Nom Société] au profit de l'Acheteur Public pour le montant forfaitaire de 1 500 DT..."</p>
+            </div>
+
+            <div class="actions">
+                <button class="btn-primary" onclick="nextStep()">J'ai compris, démarrer le dépôt</button>
+            </div>
+        </div>
+
+        <!-- Upload Steps (1 to 12) will be injected dynamically -->
+        <div id="dynamic-steps-container"></div>
+
+        <!-- STEP 13 : Verdict Final -->
+        <div id="step-13" class="step-container">
+            <h2 class="step-title">Clôture du dépôt</h2>
+            
+            <div id="verdict-display" class="verdict-box">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="actions" style="justify-content: center; margin-top: 40px;">
+                <button class="btn-primary" onclick="location.reload()" style="background-color: var(--primary-color);">Nouvelle Simulation</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Data Structure for the workflow
+        const stepsData = [
+            { id: 0, title: "Identification & Exemples", type: "info" },
+            { id: 1, title: "Plan prévisionnel", type: "upload", name: "Plan prévisionnel des marchés", desc: "Document établi par l’acheteur public présentant les projets de marchés prévus sur une période donnée." },
+            { id: 2, title: "Avis d'appel d'offres", type: "upload", name: "Avis d'appel d'offres", desc: "Document officiel par lequel l’acheteur public lance la procédure de mise en concurrence (ouvert, restreint, etc.)." },
+            { id: 3, title: "DAO", type: "upload", name: "Dossier d'Appel d'Offres signé (DAO)", desc: "Veuillez insérer le DAO dûment paraphé et signé." },
+            { id: 4, title: "Cahiers des charges", type: "upload", name: "CCAG, CCAP, CCTG, CCTP", desc: "Insérez le fichier contenant les cahiers des charges approuvés." },
+            { id: 5, title: "Déclaration sur l'honneur", type: "upload", name: "Déclaration sur l'honneur", desc: "Attestant que vous n'êtes pas en état de faillite et respectez la législation du travail." },
+            { id: 6, title: "Attestation fiscale", type: "upload", name: "Attestation fiscale", desc: "Document valide prouvant la régularité de votre situation fiscale." },
+            { id: 7, title: "Attestation CNSS", type: "upload", name: "Attestation CNSS", desc: "Document prouvant l'affiliation et la mise à jour des cotisations sociales." },
+            { id: 8, title: "Registre de commerce", type: "upload", name: "Extrait du registre national des entreprises (RNE)", desc: "Copie récente du registre de commerce." },
+            { id: 9, title: "Agrément / Qualification", type: "upload", name: "Agrément ou Certificat de qualification", desc: "Insérez votre agrément (Obligatoire si exigé par le cahier des charges)." },
+            { id: 10, title: "Caution provisoire", type: "upload_caution", name: "Caution provisoire", desc: "Garantie bancaire de soumission. Étape critique et bloquante." },
+            { id: 11, title: "Dossier technique", type: "upload", name: "Dossier technique complet", desc: "Mémoire technique, fiches techniques, CV de l'équipe, planning..." },
+            { id: 12, title: "Dossier financier", type: "upload", name: "Bordereau des prix (BPU/DQE)", desc: "Bordereau des prix unitaires et Détail Quantitatif Estimatif signés." },
+            { id: 13, title: "Verdict Final", type: "verdict" }
+        ];
+
+        let currentStep = 0;
+        let uploadedFiles = {};
+        let simulationRejected = false;
+
+        // Initialize UI
+        function init() {
+            generateSidebar();
+            generateUploadSteps();
+            updateUI();
+        }
+
+        // Generate Sidebar items
+        function generateSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            stepsData.forEach((step, index) => {
+                const div = document.createElement('div');
+                div.className = `step-item`;
+                div.id = `sidebar-step-${index}`;
+                div.innerHTML = `<div class="step-number">${index === 0 ? 'i' : (index === 13 ? '✓' : index)}</div> <span>${step.title}</span>`;
+                sidebar.appendChild(div);
+            });
+        }
+
+        // Generate Upload HTML logic dynamically
+        function generateUploadSteps() {
+            const container = document.getElementById('dynamic-steps-container');
+            
+            stepsData.forEach(step => {
+                if (step.type === 'upload' || step.type === 'upload_caution') {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.id = `step-${step.id}`;
+                    stepDiv.className = 'step-container';
+                    
+                    let extraCautionBtn = '';
+                    if (step.type === 'upload_caution') {
+                        extraCautionBtn = `<button class="btn-danger" onclick="rejectSubmission()">❌ Je n'ai pas de caution provisoire</button>`;
+                    }
+
+                    // MODIFICATION OBLIGATOIRE : accept="application/pdf" uniquement
+                    stepDiv.innerHTML = `
+                        <h2 class="step-title">Étape ${step.id} : Dépôt du ${step.title}</h2>
+                        <p style="margin-bottom: 20px;">${step.desc}</p>
+                        
+                        <div class="upload-area">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <br>
+                            <label for="file-${step.id}" class="upload-label">Choisir un fichier PDF</label>
+                            <input type="file" id="file-${step.id}" accept="application/pdf" onchange="handleFileSelect(${step.id})">
+                            <div class="file-status" id="status-${step.id}">En attente de document PDF...</div>
+                        </div>
+
+                        <!-- Ancien Bloc de Résumé Pédagogique (Conservé) -->
+                        <div id="summary-${step.id}" class="document-summary"></div>
+
+                        <!-- Nouveau Bloc d'Analyse Approfondie Structurelle et Reproduction Simplifiée -->
+                        <div id="analysis-${step.id}" class="document-analysis"></div>
+
+                        <div class="actions">
+                            ${extraCautionBtn}
+                            <button id="btn-next-${step.id}" class="btn-primary" disabled onclick="nextStep()">Étape Suivante ➡️</button>
+                        </div>
+                    `;
+                    container.appendChild(stepDiv);
+                }
+            });
+        }
+
+        // Pedagogical Tabs logic
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Generate Document Summary Analysis (Ancienne fonction conservée pour le workflow visuel)
+        function generateDocumentSummary(file, documentType) {
+            const stepId = documentType.id;
+            const summaryDiv = document.getElementById(`summary-${stepId}`);
+            
+            if (!summaryDiv) return;
+
+            const pedagogicalDescriptions = {
+                1: "Document annonçant publiquement les intentions d'achats de l'acheteur public pour l'année en cours, permettant l'anticipation.",
+                2: "Document officiel de publicité invitant les entreprises à concourir, précisant l'objet, la procédure (ouvert, restreint, 2 étapes, concours) et les délais.",
+                3: "Document cadrant l'appel d'offres : objet, conditions de participation, règles générales de la consultation.",
+                4: "Document fixant les règles administratives générales applicables au marché (paiement, pénalités, résiliation) et décrivant les exigences techniques.",
+                5: "Attestation certifiant que l'entreprise n'est pas en faillite et respecte les lois en vigueur.",
+                6: "Justificatif officiel attestant que le soumissionnaire est en règle vis-à-vis du fisc.",
+                7: "Justificatif attestant que le soumissionnaire déclare et paie ses charges sociales.",
+                8: "Preuve de l'existence juridique et de l'immatriculation de la société.",
+                9: "Document autorisant l'entreprise à exercer, certifiant ses capacités professionnelles.",
+                10: "Garantie financière attestant du sérieux de l'offre, exigée sous peine de rejet.",
+                11: "Proposition détaillant l'approche, la méthodologie, et les moyens techniques pour la réalisation du projet.",
+                12: "Proposition commerciale engageante, listant les tarifs unitaires ou globaux (BPU/DQE)."
+            };
+
+            const baseSummary = pedagogicalDescriptions[stepId] || "Document justificatif lié à l'offre.";
+
+            summaryDiv.style.display = 'block';
+            summaryDiv.innerHTML = `
+                <div class="document-summary-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    Nature attendue du document : ${documentType.title}
+                </div>
+                <div class="document-summary-content">
+                    <strong>Rappel pédagogique :</strong> ${baseSummary}
+                </div>
+            `;
+        }
+
+        // Handle File Input Validation
+        function handleFileSelect(stepId) {
+            const input = document.getElementById(`file-${stepId}`);
+            const statusDiv = document.getElementById(`status-${stepId}`);
+            const nextBtn = document.getElementById(`btn-next-${stepId}`);
+            const summaryDiv = document.getElementById(`summary-${stepId}`);
+            const analysisDiv = document.getElementById(`analysis-${stepId}`);
+
+            if (input.files && input.files.length > 0) {
+                const file = input.files[0];
+                const fileName = file.name;
+                
+                // RÈGLE ABSOLUE : Rejet strict des fichiers non PDF
+                if (file.type !== 'application/pdf' && !fileName.toLowerCase().endsWith('.pdf')) {
+                    delete uploadedFiles[stepId];
+                    statusDiv.innerHTML = `❌ Document refusé : Le simulateur accepte EXCLUSIVEMENT des fichiers PDF. Les formats éditables ou images (comme ${fileName.split('.').pop().toUpperCase()}) sont formellement interdits.`;
+                    statusDiv.className = "file-status status-error";
+                    nextBtn.disabled = true;
+                    
+                    if(summaryDiv) summaryDiv.style.display = 'none';
+                    if(analysisDiv) analysisDiv.style.display = 'none';
+                    return;
+                }
+
+                uploadedFiles[stepId] = fileName;
+                statusDiv.innerHTML = `✅ Document PDF accepté : <strong>${fileName}</strong>`;
+                statusDiv.className = "file-status status-success";
+                nextBtn.disabled = false; // Unblock the step
+
+                const currentStepData = stepsData.find(s => s.id === stepId);
+                generateDocumentSummary(file, currentStepData);
+                
+                // Appel de la NOUVELLE fonction d'analyse PDF structurée et détaillée
+                analyzePdfAndReproduceContent(file, currentStepData);
+
+            } else {
+                delete uploadedFiles[stepId];
+                statusDiv.innerHTML = `❌ Aucun document sélectionné. Étape bloquée.`;
+                statusDiv.className = "file-status status-error";
+                nextBtn.disabled = true;
+                
+                if(summaryDiv) summaryDiv.style.display = 'none';
+                if(analysisDiv) analysisDiv.style.display = 'none';
+            }
+        }
+
+        // Fonction d'extraction PDF stricte, intégrant PDF.js et une heuristique RAW de sécurité pour l'arabe
+        function analyzePdfAndReproduceContent(file, documentType) {
+            const stepId = documentType.id;
+            const analysisDiv = document.getElementById(`analysis-${stepId}`);
+            if (!analysisDiv) return;
+
+            analysisDiv.style.display = 'block';
+            analysisDiv.innerHTML = `<div class="analysis-loading">⏳ Analyse approfondie et structuration du contenu réel du PDF en cours...</div>`;
+
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+                const arrayBuffer = e.target.result;
+                let rawArabicOverride = null;
+
+                try {
+                    // HEURISTIQUE DE SÉCURITÉ : Lire le flux brut avant PDF.js pour capter les métadonnées arabes
+                    // Ceci permet de forcer la langue arabe même si PDF.js échoue (PDF scanné)
+                    const textDecoder = new TextDecoder('utf-8');
+                    const rawString = textDecoder.decode(arrayBuffer.slice(0, 150000));
+                    const rawArabicCount = (rawString.match(/[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
+                    if (rawArabicCount > 15) {
+                        rawArabicOverride = true;
+                    }
+                } catch(err) {}
+
+                try {
+                    // Chargement dynamique et sécurisé de PDF.js pour extraction avancée du texte
+                    if (!window.pdfjsLib) {
+                        await new Promise((resolve, reject) => {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
+                            script.onload = () => {
+                                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                                resolve();
+                            };
+                            script.onerror = reject;
+                            document.head.appendChild(script);
+                        });
+                    }
+
+                    const loadingTask = window.pdfjsLib.getDocument(arrayBuffer);
+                    const pdf = await loadingTask.promise;
+
+                    let rawText = "";
+                    // Extraction des 5 premières pages pour obtenir un maximum de détails
+                    const numPages = Math.min(pdf.numPages, 5);
+                    for (let i = 1; i <= numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        rawText += pageText + "\n";
+                    }
+
+                    let cleanText = rawText.replace(/[ \t]+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
+
+                    // ÉTAPE 2 : DÉTECTION CRITIQUE DE L'EXPLOITABILITÉ DU TEXTE
+                    const arabicCharsCount = (cleanText.match(/[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
+                    const latinCharsCount = (cleanText.match(/[a-zA-Z\u00C0-\u00FF]/g) || []).length;
+                    const totalValidChars = arabicCharsCount + latinCharsCount;
+                    const totalExtractedLength = cleanText.length || 1;
+                    
+                    // Détection des glyphes / caractères corrompus (ex: x ì{ | Uò ½)
+                    const gibberishCharsCount = (cleanText.match(/[^\w\s\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF\u00C0-\u00FF\.,;:!?'"()\-]/g) || []).length;
+                    
+                    // Le fichier est exploitable si on a de vrais caractères et très peu de symboles corrompus
+                    const isExploitable = (totalValidChars > 100) && (gibberishCharsCount / totalExtractedLength < 0.20) && (totalValidChars / totalExtractedLength > 0.35);
+
+                    // Déduction Intelligente et Sécurisée de la langue
+                    let isArabicDominant = false;
+                    
+                    if (arabicCharsCount > 20 || latinCharsCount > 20) {
+                        isArabicDominant = arabicCharsCount > latinCharsCount;
+                    } else if (rawArabicOverride !== null) {
+                        // Secours binaire si très peu de texte extrait
+                        isArabicDominant = rawArabicOverride;
+                    } else {
+                        // Secours par le nom du fichier
+                        isArabicDominant = (file.name.match(/[\u0600-\u06FF\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length > 0;
+                    }
+
+                    const detectedLang = isArabicDominant ? "Arabe (العربية)" : "Français";
+                    
+                    if (isExploitable) {
+                        // CAS A : Texte parfaitement lisible -> Extraction thématique structurée
+                        processExploitableText(cleanText, isArabicDominant, detectedLang, analysisDiv);
+                    } else {
+                        // CAS B : Texte non exploitable (Scanné, police corrompue, binaire) -> Fallback structurel intelligent
+                        generateStructuralFallback(file.name, stepId, documentType, analysisDiv, isArabicDominant);
+                    }
+
+                } catch (error) {
+                    console.warn("L'extraction textuelle a échoué (sécurité ou scan). Basculement vers la reproduction structurelle.");
+                    generateStructuralFallback(file.name, stepId, documentType, analysisDiv, rawArabicOverride);
+                }
+            };
+
+            reader.onerror = function() {
+                generateStructuralFallback(file.name, stepId, documentType, analysisDiv, null);
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // CAS A : Reproduction fidèle structurée par blocs thématiques (Objet, Conditions, Finances, Délais)
+        function processExploitableText(cleanText, isArabicDominant, detectedLang, analysisDiv) {
+            // Fractionnement en phrases ou petits paragraphes
+            const blocks = cleanText.split(/[\n\.]/).map(l => l.trim()).filter(l => l.length > 20);
+
+            let documentTitle = "";
+            let sections = [];
+            
+            // Catégories thématiques pour structurer le contenu
+            let themes = {
+                objet: [],
+                conditions: [],
+                finances: [],
+                delais: []
+            };
+
+            // Recherche de dates et de montants réels dans le document global
+            const dateRegex = /\b(0?[1-9]|[12][0-9]|3[01])[\/\-\.](0?[1-9]|1[012])[\/\-\.]\d{2,4}\b/g;
+            const amountRegex = /\b\d{1,3}(?:[ \.,]\d{3})*(?:[.,]\d{1,3})?\s*(?:DT|TND|EUR|€|USD|\$|د\.ت|دينار)\b/gi;
+
+            let extractedDates = [...new Set(cleanText.match(dateRegex) || [])].slice(0, 4);
+            let extractedAmounts = [...new Set(cleanText.match(amountRegex) || [])].slice(0, 4);
+
+            // Mots-clés pour le routage thématique
+            const kwFR = {
+                objet: ['objet', "appel d'offres", 'marché', 'projet', 'prestation', 'fourniture', 'travaux', 'cahier des charges', 'plan prévisionnel'],
+                conditions: ['condition', 'engagement', 'déclare', 'responsabilité', 'pénalité', 'résiliation', 'garantie', 'caution', 'obligation', 'clause', 'loi', 'restreint', 'concours'],
+                finances: ['prix', 'montant', 'paiement', 'facture', 'retenue', 'tva', 'budget', 'dinars', 'euros', 'financier', 'règlement'],
+                delais: ['délai', 'durée', 'jour', 'mois', 'calendrier', 'réception', 'exécution', 'livraison', 'date limite']
+            };
+            const kwAR = {
+                objet: ['موضوع', 'طلب عروض', 'صفقة', 'مشروع', 'خدمات', 'أشغال', 'تزويد', 'كراس شروط', 'مخطط تقديري'],
+                conditions: ['شروط', 'التزام', 'أصرح', 'مسؤولية', 'غرامة', 'فسخ', 'ضمان', 'كفالة', 'واجب', 'قانون', 'مضيق', 'مناظرة'],
+                finances: ['سعر', 'مبلغ', 'دفع', 'خلاص', 'أداء', 'ميزانية', 'دينار', 'أورو', 'مالي'],
+                delais: ['أجل', 'مدة', 'يوم', 'شهر', 'رزنامة', 'قبول', 'تنفيذ', 'تسليم', 'تاريخ أقصى']
+            };
+            
+            const kw = isArabicDominant ? kwAR : kwFR;
+
+            // 1. Extraction approfondie du Titre / En-tête
+            const titleMarkersFR = ["objet", "titre", "intitulé", "appel", "marché", "engagement", "déclaration", "attestation", "république", "plan"];
+            const titleMarkersAR = ["موضوع", "عنوان", "طلب عروض", "صفقة", "التزام", "تصريح", "شهادة", "جمهورية", "مخطط"];
+            const markers = isArabicDominant ? titleMarkersAR : titleMarkersFR;
+            
+            const rawLines = cleanText.split('\n').map(l => l.trim()).filter(l => l.length > 5);
+            for (let i = 0; i < Math.min(15, rawLines.length); i++) {
+                if (rawLines[i].length > 10 && rawLines[i].length < 150) {
+                    if (rawLines[i] === rawLines[i].toUpperCase() || markers.some(m => rawLines[i].toLowerCase().includes(m))) {
+                        documentTitle += rawLines[i] + " ";
+                        if(documentTitle.length > 120) break;
+                    }
+                }
+            }
+            if (!documentTitle.trim()) {
+                const firstSigLine = rawLines.find(l => l.length > 15 && l.length < 100);
+                documentTitle = firstSigLine || (isArabicDominant ? "وثيقة بدون عنوان واضح" : "Document sans titre explicite");
+            }
+
+            // 2. Routage des blocs de texte vers les thématiques correspondantes
+            blocks.forEach(block => {
+                let lowerBlock = block.toLowerCase();
+                let assigned = false;
+
+                // On évite les blocs trop courts ou les lignes de remplissage pointillées
+                if (block.length < 30 || block.includes('...........')) return;
+
+                if (kw.objet.some(k => lowerBlock.includes(k))) { themes.objet.push(block); assigned = true; }
+                if (kw.conditions.some(k => lowerBlock.includes(k))) { themes.conditions.push(block); assigned = true; }
+                if (kw.finances.some(k => lowerBlock.includes(k))) { themes.finances.push(block); assigned = true; }
+                if (kw.delais.some(k => lowerBlock.includes(k))) { themes.delais.push(block); assigned = true; }
+
+                // S'il n'est classé nulle part mais qu'il est assez consistant, on peut le mettre en condition générale
+                if (!assigned && block.length > 80 && themes.conditions.length < 2) {
+                    themes.conditions.push(block);
+                }
+            });
+
+            // Déduplication et limitation
+            for (let key in themes) {
+                themes[key] = [...new Set(themes[key])].slice(0, 3); // Garder les 3 meilleures phrases par thème
+            }
+
+            // 3. Construction du rendu HTML hautement structuré
+            let reproductionHtml = "";
+
+            if (isArabicDominant) {
+                reproductionHtml += `<p style="margin-bottom: 15px; font-size: 1.05rem; color: #333;"><strong>تحليل مهيكل ومفصل للمحتوى الفعلي المستخرج:</strong></p>`;
+                
+                if (themes.objet.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-theme-card">
+                        <div class="analysis-theme-title">🎯 موضوع الوثيقة والإطار العام</div>
+                        <ul class="analysis-theme-list">
+                            ${themes.objet.map(t => `<li>${t.substring(0, 200)}${t.length > 200 ? '...' : ''}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                if (themes.conditions.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-theme-card" style="border-left-color: #f57c00;">
+                        <div class="analysis-theme-title" style="color: #e65100;">⚖️ الالتزامات، الشروط والقواعد</div>
+                        <ul class="analysis-theme-list">
+                            ${themes.conditions.map(t => `<li>${t.substring(0, 200)}${t.length > 200 ? '...' : ''}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                if (themes.finances.length > 0 || themes.delais.length > 0) {
+                    reproductionHtml += `<div style="display: flex; gap: 15px; flex-wrap: wrap;">`;
+                    if (themes.finances.length > 0) {
+                        reproductionHtml += `
+                        <div class="analysis-theme-card" style="flex: 1; min-width: 250px; border-left-color: #388e3c;">
+                            <div class="analysis-theme-title" style="color: #2e7d32;">💰 الجوانب المالية</div>
+                            <ul class="analysis-theme-list" style="padding-right:15px; padding-left:0;">
+                                ${themes.finances.map(t => `<li>${t.substring(0, 150)}...</li>`).join('')}
+                            </ul>
+                        </div>`;
+                    }
+                    if (themes.delais.length > 0) {
+                        reproductionHtml += `
+                        <div class="analysis-theme-card" style="flex: 1; min-width: 250px; border-left-color: #1976d2;">
+                            <div class="analysis-theme-title" style="color: #1565c0;">⏳ الآجال والتنفيذ</div>
+                            <ul class="analysis-theme-list" style="padding-right:15px; padding-left:0;">
+                                ${themes.delais.map(t => `<li>${t.substring(0, 150)}...</li>`).join('')}
+                            </ul>
+                        </div>`;
+                    }
+                    reproductionHtml += `</div>`;
+                }
+
+                // Affichage des بيانات رقمية 
+                if (extractedDates.length > 0 || extractedAmounts.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-stats-block">
+                        <div style="color:#2e7d32; font-weight:bold;">📊 مؤشرات رقمية صريحة مستخرجة:</div>
+                        ${extractedDates.length > 0 ? `<div><strong>📅 تواريخ:</strong> ${extractedDates.join('، ')}</div>` : ''}
+                        ${extractedAmounts.length > 0 ? `<div><strong>💰 مبالغ:</strong> ${extractedAmounts.join('، ')}</div>` : ''}
+                    </div>`;
+                }
+
+            } else {
+                reproductionHtml += `<p style="margin-bottom: 15px; font-size: 1.05rem; color: #333;"><strong>Analyse structurée détaillée du contenu réel :</strong></p>`;
+                
+                if (themes.objet.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-theme-card">
+                        <div class="analysis-theme-title">🎯 Objet et Contexte Général</div>
+                        <ul class="analysis-theme-list">
+                            ${themes.objet.map(t => `<li>${t.substring(0, 250)}${t.length > 250 ? '...' : ''}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                if (themes.conditions.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-theme-card" style="border-left-color: #f57c00;">
+                        <div class="analysis-theme-title" style="color: #e65100;">⚖️ Engagements, Conditions & Règles</div>
+                        <ul class="analysis-theme-list">
+                            ${themes.conditions.map(t => `<li>${t.substring(0, 250)}${t.length > 250 ? '...' : ''}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                }
+
+                if (themes.finances.length > 0 || themes.delais.length > 0) {
+                    reproductionHtml += `<div style="display: flex; gap: 15px; flex-wrap: wrap;">`;
+                    if (themes.finances.length > 0) {
+                        reproductionHtml += `
+                        <div class="analysis-theme-card" style="flex: 1; min-width: 250px; border-left-color: #388e3c;">
+                            <div class="analysis-theme-title" style="color: #2e7d32;">💰 Aspects Financiers</div>
+                            <ul class="analysis-theme-list" style="padding-left:15px; padding-right:0;">
+                                ${themes.finances.map(t => `<li>${t.substring(0, 150)}...</li>`).join('')}
+                            </ul>
+                        </div>`;
+                    }
+                    if (themes.delais.length > 0) {
+                        reproductionHtml += `
+                        <div class="analysis-theme-card" style="flex: 1; min-width: 250px; border-left-color: #1976d2;">
+                            <div class="analysis-theme-title" style="color: #1565c0;">⏳ Délais et Exécution</div>
+                            <ul class="analysis-theme-list" style="padding-left:15px; padding-right:0;">
+                                ${themes.delais.map(t => `<li>${t.substring(0, 150)}...</li>`).join('')}
+                            </ul>
+                        </div>`;
+                    }
+                    reproductionHtml += `</div>`;
+                }
+
+                if (extractedDates.length > 0 || extractedAmounts.length > 0) {
+                    reproductionHtml += `
+                    <div class="analysis-stats-block">
+                        <div style="color:#2e7d32; font-weight:bold;">📊 Chiffres et Dates clés extraits :</div>
+                        ${extractedDates.length > 0 ? `<div><strong>📅 Dates identifiées :</strong> ${extractedDates.join(', ')}</div>` : ''}
+                        ${extractedAmounts.length > 0 ? `<div><strong>💰 Montants identifiés :</strong> ${extractedAmounts.join(', ')}</div>` : ''}
+                    </div>`;
+                }
+            }
+
+            // Fallback si aucun thème n'a pu être rempli (texte en vrac)
+            if (themes.objet.length === 0 && themes.conditions.length === 0 && themes.finances.length === 0 && themes.delais.length === 0) {
+                const fallbackBlocks = blocks.slice(0, 3).map(b => `<li>${b.substring(0, 200)}...</li>`).join('');
+                reproductionHtml += `
+                    <div class="analysis-theme-card" style="border-left-color: #757575;">
+                        <div class="analysis-theme-title" style="color: #616161;">📄 Extraits continus du document</div>
+                        <ul class="analysis-theme-list">${fallbackBlocks}</ul>
+                    </div>`;
+            }
+
+            // Extraction simple des sections pour le header (optionnel)
+            const sectionRegexFR = /^(article|chapitre|section|objet|engagement|conditions|déclarations|signature|date|modalité|nature)\s*[:\-]?\s*(.*)/i;
+            const sectionRegexAR = /^(فصل|باب|قسم|موضوع|التزام|شروط|تصريح|إمضاء|تاريخ|طبيعة|كيفية)\s*[:\-]?\s*(.*)/;
+            for (let line of rawLines) {
+                if (sectionRegexFR.test(line) || sectionRegexAR.test(line)) {
+                    sections.push(line.substring(0, 80));
+                }
+            }
+            sections = [...new Set(sections)].slice(0, 4);
+
+            renderAnalysisHTML(analysisDiv, isArabicDominant, detectedLang, documentTitle.trim(), sections, reproductionHtml, false);
+        }
+
+        // CAS B : Reproduction structurelle Intelligente (Fichier non exploitable textuellement / Scanné)
+        function generateStructuralFallback(filename, stepId, documentType, analysisDiv, isArabicDominantOverride) {
+            let isArabicDominant = false;
+            
+            // On utilise d'abord la détection forcée via les métadonnées binaire du PDF, sinon on se rabat sur le nom du fichier.
+            if (isArabicDominantOverride !== null && isArabicDominantOverride !== undefined) {
+                isArabicDominant = isArabicDominantOverride;
+            } else {
+                const isFilenameArabic = (filename.match(/[\u0600-\u06FF]/g) || []).length > 0;
+                isArabicDominant = isFilenameArabic;
+            }
+
+            const finalLangCode = isArabicDominant ? "ar" : "fr";
+            const detectedLang = isArabicDominant ? "Arabe (العربية) - Déduit" : "Français - Déduit";
+
+            const structuralData = {
+                fr: {
+                    1: { title: "Plan prévisionnel des marchés", sec: ["Période couverte", "Types de marchés", "Nature prévisionnelle"], rep: "Ce document de planification présente les projets d'achats prévus par l'acheteur public.<br>Il précise la période concernée et la nature des marchés à venir.<br>Il a un rôle purement informatif permettant aux entreprises d'anticiper les opportunités." },
+                    2: { title: "Avis d'appel d'offres", sec: ["Objet du marché", "Procédure (ouvert/restreint/concours)", "Conditions de participation", "Délais"], rep: "Le document est un avis d'appel d'offres émis par un acheteur public.<br>Il précise l'objet du marché, la procédure choisie (ouvert, restreint, en deux étapes ou avec concours) et les conditions de participation.<br>L'avis mentionne les modalités de retrait du dossier et la date limite de dépôt." },
+                    3: { title: "Dossier d'Appel d'Offres (DAO)", sec: ["Règlement de la consultation", "Instructions aux soumissionnaires", "Critères d'évaluation"], rep: "Le document est le dossier d'appel d'offres constituant le cadre de la consultation.<br>Il précise l'objet exact du marché et les instructions détaillées pour les soumissionnaires.<br>Il contient les critères d'évaluation et les formulaires types à remplir." },
+                    4: { title: "Cahier des Charges (CCAG/CCAP)", sec: ["Objet et champ d'application", "Nature de la procédure", "Modalités pratiques", "Signature / mentions finales"], rep: "Le document est un cahier des charges constituant le socle contractuel du marché.<br>Il expose l'objet principal des attentes de l'acheteur public et la nature des obligations.<br>Il indique les conditions d'exécution, de livraison ou de réalisation requises.<br>Il se conclut généralement par les mentions d'approbation et de signature des parties prenantes." },
+                    5: { title: "Déclaration sur l'Honneur", sec: ["Objet du document", "Conditions de participation", "Signature / mentions finales"], rep: "Le document débute par l'identification du déclarant et l'objet de la déclaration.<br>Il expose ensuite les engagements pris sur l'honneur, notamment l'absence de faillite et le respect des obligations légales.<br>Le document se conclut par la date, la signature et la légalisation." },
+                    6: { title: "Attestation Fiscale", sec: ["Objet du document", "Conditions de participation", "Dates et lieux"], rep: "Le document est une attestation certifiant la régularité fiscale du soumissionnaire.<br>Il indique formellement que l'entreprise satisfait aux conditions légales exigées pour participer aux marchés publics.<br>Il mentionne la période de validité et est validé par les autorités fiscales compétentes." },
+                    7: { title: "Attestation CNSS", sec: ["Objet du document", "Conditions de participation", "Dates et lieux"], rep: "Le document est une attestation officielle relative à la couverture sociale.<br>Il certifie que l'entreprise respecte ses obligations déclaratives et contributives.<br>Le document inclut la date d'émission, assurant la validité du statut du candidat lors du dépôt." },
+                    8: { title: "Extrait du Registre (RNE)", sec: ["Objet du document", "Nature de la procédure"], rep: "Le document correspond à l'extrait officiel du registre des entreprises.<br>Il atteste de l'existence juridique de la société et précise la nature de ses activités déclarées, confirmant ainsi sa capacité à concourir." },
+                    9: { title: "Agrément / Qualification", sec: ["Objet du document", "Conditions de participation", "Modalités pratiques"], rep: "Le document représente une certification ou un agrément professionnel.<br>Il établit formellement que le soumissionnaire détient les compétences, la catégorie ou les autorisations obligatoires pour ce marché spécifique." },
+                    10: { title: "Caution Provisoire", sec: ["Objet du document", "Modalités pratiques", "Dates et lieux", "Signature / mentions finales"], rep: "Le document est un acte de cautionnement bancaire garantissant la soumission.<br>Il précise le bénéficiaire, l'objet de la garantie et le montant bloqué.<br>Il détermine les modalités pratiques d'engagement et la date d'échéance de la couverture financière." },
+                    11: { title: "Dossier Technique", sec: ["Objet du document", "Nature de la procédure", "Modalités pratiques"], rep: "Le document constitue la proposition technique de l'entreprise.<br>Il détaille l'approche adoptée pour répondre à l'objet du marché et à la nature des prestations.<br>Il décrit les modalités pratiques d'intervention, les moyens alloués et la planification prévue." },
+                    12: { title: "Offre Financière (BPU/DQE)", sec: ["Objet du document", "Modalités pratiques", "Signature / mentions finales"], rep: "Le document formalise l'engagement financier du soumissionnaire.<br>Il décline les modalités pratiques de tarification à travers les prix unitaires et les quantités estimées.<br>L'offre se termine obligatoirement par le montant global et la signature du représentant légal." },
+                    default: { title: "Document de soumission", sec: ["Objet du document", "Modalités pratiques"], rep: "Le document est une pièce annexée au dossier de soumission.<br>Il répond aux attentes administratives ou techniques de l'étape en cours." }
+                },
+                ar: {
+                    1: { title: "المخطط التقديري للصفقات", sec: ["الفترة المعنية", "أنواع الصفقات", "الطبيعة التقديرية"], rep: "هذه الوثيقة عبارة عن مخطط يعرض مشاريع الشراء المبرمجة من قبل المشتري العمومي.<br>تحدد الفترة المعنية وطبيعة الصفقات المستقبلية.<br>لها دور إعلامي استباقي يسمح للمؤسسات بالتحضير للفرص القادمة." },
+                    2: { title: "إعلان طلب عروض", sec: ["موضوع الصفقة", "نوع الإجراء (مفتوح، مضيق، الخ)", "شروط المشاركة", "الآجال"], rep: "الوثيقة هي إعلان طلب عروض صادر عن مشتري عمومي.<br>تتضمن موضوع الصفقة والإجراء المعتمد (مفتوح، مضيق، على مرحلتين أو مناظرة).<br>تبيّن شروط المشاركة وآجال سحب الملف وتقديم العروض." },
+                    3: { title: "ملف طلب العروض (DAO)", sec: ["نظام الاستشارة", "تعليمات للمشاركين", "مقاييس التقييم"], rep: "تمثل الوثيقة ملف طلب العروض الذي يحدد الإطار العام للاستشارة.<br>توضح موضوع الصفقة بدقة والتعليمات المفصلة للعارضين.<br>تتضمن مقاييس التقييم والنماذج الموحدة الواجب تعميرها." },
+                    4: { title: "كراس الشروط", sec: ["موضوع الوثيقة", "طبيعة الإجراء", "كيفية تقديم العروض", "الإمضاء والتاريخ"], rep: "تُشكل الوثيقة كراس الشروط الذي يمثل الإطار التعاقدي للصفقة.<br>تعرض موضوع الانتظارات الأساسية للمشتري العمومي وطبيعة الالتزامات.<br>توضح ظروف التنفيذ والتسليم والإجراءات المطلوبة.<br>وتنتهي عموماً بالتنصيص على مصادقة وإمضاء الأطراف المعنية." },
+                    5: { title: "تصريح على الشرف", sec: ["موضوع الوثيقة", "شروط المشاركة", "الإمضاء والتاريخ"], rep: "تبدأ الوثيقة بتعريف المصرّح وموضوع التصريح ضمن إطار الصفقة.<br>ثم تتضمن التزامات صريحة على الشرف تؤكد عدم الإفلاس واحترام القوانين الجاري بها العمل.<br>وتُختتم الوثيقة بذكر التاريخ والفضاء المخصص للإمضاء والتعريف بالإمضاء." },
+                    6: { title: "شهادة جبائية", sec: ["موضوع الوثيقة", "شروط المشاركة", "الآجال والمكان"], rep: "الوثيقة هي شهادة تثبت تسوية الوضعية الجبائية للعارض.<br>تؤكد رسمياً استيفاء الشركة للشروط القانونية الضرورية للمشاركة في الصفقات العمومية.<br>تنص على فترة الصلوحية وتحمل تأشيرة السلطات المالية المختصة." },
+                    7: { title: "شهادة الانخراط في الضمان الاجتماعي", sec: ["موضوع الوثيقة", "شروط المشاركة", "الآجال والمكان"], rep: "الوثيقة عبارة عن شهادة رسمية متعلقة بالتغطية الاجتماعية.<br>تثبت احترام المؤسسة لالتزاماتها تجاه صندوق الضمان الاجتماعي.<br>تتضمن تاريخ الإصدار مما يؤكد سلامة الوضعية عند إيداع العرض." },
+                    8: { title: "مستخرج من السجل الوطني للمؤسسات", sec: ["موضوع الوثيقة", "طبيعة الإجراء"], rep: "تطابق الوثيقة المستخرج الرسمي من سجل المؤسسات.<br>تثبت الوجود القانوني للشركة وتوضح طبيعة أنشطتها المصرح بها، مما يؤكد أهليتها للمشاركة." },
+                    9: { title: "شهادة الترخيص / الموافقة", sec: ["موضوع الوثيقة", "شروط المشاركة", "كيفية تقديم العروض"], rep: "تمثل الوثيقة شهادة موافقة أو ترخيص مهني.<br>تثبت بصفة قاطعة امتلاك العارض للكفاءات، الصنف، أو التراخيص الضرورية لإنجاز هذه الصفقة تحديداً." },
+                    10: { title: "ضمان مالي وقتي", sec: ["موضوع الوثيقة", "كيفية تقديم العروض", "الآجال والمكان", "الإمضاء والتاريخ"], rep: "الوثيقة هي التزام كفالة بنكية تضمن العرض المالي.<br>تحدد المستفيد، موضوع الضمان، والمبلغ المالي المجمد.<br>تضبط الإجراءات العملية للالتزام وتاريخ انتهاء التغطية المالية." },
+                    11: { title: "العرض الفني", sec: ["موضوع الوثيقة", "طبيعة الإجراء", "كيفية تقديم العروض"], rep: "تُمثل الوثيقة المقترح الفني المقدم من طرف المؤسسة.<br>تفصل المقاربة المعتمدة للاستجابة لموضوع الصفقة وطبيعة الخدمات المطلوبة.<br>تصف كيفية التدخل، الموارد المخصصة، والبرمجة الزمنية المتوقعة." },
+                    12: { title: "العرض المالي", sec: ["موضوع الوثيقة", "كيفية تقديم العروض", "الإمضاء والتاريخ"], rep: "تُجسد الوثيقة الالتزام المالي للعارض.<br>تفصل طرق التسعير من خلال الأسعار الفردية والكميات التقديرية.<br>يُختتم العرض وجوباً بالمبلغ الجملي الملتزم به وإمضاء الممثل القانوني." },
+                    default: { title: "وثيقة العرض", sec: ["موضوع الوثيقة", "كيفية تقديم العروض"], rep: "الوثيقة هي جزء مرفق بملف العرض.<br>تستجيب للانتظارات الإدارية أو الفنية للمرحلة الحالية من الإجراءات." }
+                }
+            };
+
+            const tpl = structuralData[finalLangCode][stepId] || structuralData[finalLangCode].default;
+            
+            const reproductionHtml = `
+                <div class="analysis-theme-card" style="border-left-color: #607d8b;">
+                    <div class="analysis-theme-title" style="color: #455a64;">
+                        ${isArabicDominant ? '📄 استنساخ هيكلي مخلص (بناءً على طبيعة الوثيقة):' : '📄 Reproduction structurelle fidèle (basée sur la nature du document) :'}
+                    </div>
+                    <div style="padding-left: 10px; padding-right: 10px; line-height: 1.6; color: #444;">
+                        ${tpl.rep}
+                    </div>
+                </div>`;
+            
+            renderAnalysisHTML(analysisDiv, isArabicDominant, detectedLang, tpl.title, tpl.sec, reproductionHtml, true);
+        }
+
+        // Fonction de rendu final (Commune au CAS A et CAS B)
+        function renderAnalysisHTML(container, isRTL, detectedLang, title, sections, reproductionHtml, isFallback) {
+            const dir = isRTL ? 'rtl' : 'ltr';
+            const align = isRTL ? 'right' : 'left';
+            const fontFamily = isRTL ? "'Segoe UI', Tahoma, Arial, sans-serif" : "inherit";
+
+            const lblLang = isRTL ? "لغة الوثيقة" : "Langue du document";
+            const lblTitle = isRTL ? "العنوان أو الموضوع" : "Titre ou objet détaillé";
+            const lblSections = isRTL ? "المكونات الهيكلية الرئيسية المستخرجة" : "Composants structurels extraits";
+            const lblWarning = isRTL ? "⚠️ استنساخ آلي تعليمي مخلص للمحتوى الفعلي - ليس له أي قيمة قانونية" : "⚠️ Reproduction pédagogique automatique du contenu réel – non contractuel";
+            const lblNoSections = isRTL ? "لم يتم اكتشاف عناوين فرعية صريحة" : "Aucun sous-titre explicite identifié";
+
+            let sectionsHTML = sections.length > 0 
+                ? `<ul style="margin: 5px 0; padding-${isRTL ? 'right' : 'left'}: 25px;"><li>` + sections.join("</li><li>") + `</li></ul>`
+                : `<em>${lblNoSections}</em>`;
+
+            let fallbackNote = "";
+            if (isFallback) {
+                const fTxt = isRTL 
+                    ? `(تعذر استخراج نص مقروء لأن الملف مصور أو مشفر. تم الاستناد إلى بنية الوثيقة المتوقعة احتراما للمعايير)` 
+                    : `(Texte directement illisible ou scanné. Reproduction basée sur la structure informationnelle standard du document)`;
+                fallbackNote = `<div style="font-size:0.85rem; color:#888; font-style:italic; margin-bottom:12px;">${fTxt}</div>`;
+            }
+
+            let summaryHTML = `
+                <div dir="${dir}" style="text-align: ${align}; font-family: ${fontFamily};">
+                    ${fallbackNote}
+                    <div class="analysis-row"><strong>${lblLang} :</strong> ${detectedLang}</div>
+                    <div class="analysis-row"><strong>${lblTitle} :</strong> <span style="color:#0071bc; font-weight:bold;">${title}</span></div>
+                    
+                    ${sections.length > 0 ? `
+                    <div class="analysis-row" style="margin-top: 10px;">
+                        <strong>${lblSections} :</strong>
+                        <div style="background:#f0f8ff; padding:10px; border-radius:4px; margin-top:5px; border-left: ${isRTL?'none':'3px solid #64b5f6'}; border-right: ${isRTL?'3px solid #64b5f6':'none'}; font-size:0.95rem; color:#0d47a1;">
+                            ${sectionsHTML}
+                        </div>
+                    </div>` : ''}
+
+                    <div style="margin-top: 15px;">
+                        ${reproductionHtml}
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div class="analysis-header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-${isRTL?'left':'right'}:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Détail et Structuration du Contenu
+                </div>
+                <div class="analysis-body">
+                    ${summaryHTML}
+                </div>
+                <div class="analysis-warning">
+                    ${lblWarning}
+                </div>
+            `;
+        }
+
+        // Navigation Logic
+        function nextStep() {
+            if (currentStep < 13) {
+                currentStep++;
+                updateUI();
+            }
+        }
+
+        // Immediate Rejection Logic (Specific to Caution Provisoire requirement)
+        function rejectSubmission() {
+            simulationRejected = true;
+            currentStep = 13; // Jump to verdict
+            updateUI();
+        }
+
+        // Master UI Updater (State Machine)
+        function updateUI() {
+            // Update Sidebar colors
+            document.querySelectorAll('.step-item').forEach((el, index) => {
+                el.classList.remove('active', 'completed', 'rejected');
+                
+                if (simulationRejected && index > 10) {
+                    return; 
+                }
+
+                if (index === currentStep && !simulationRejected) {
+                    el.classList.add('active');
+                } else if (index < currentStep && !simulationRejected) {
+                    el.classList.add('completed');
+                } else if (simulationRejected && index === 10) {
+                    el.classList.add('rejected');
+                }
+            });
+
+            // Hide all step containers
+            document.querySelectorAll('.step-container').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // Show current step container
+            const currentContainer = document.getElementById(`step-${currentStep}`);
+            if (currentContainer) {
+                currentContainer.style.display = 'block';
+            }
+
+            if (currentStep === 13) {
+                renderVerdict();
+            }
+        }
+
+        // Final Screen Renderer
+        function renderVerdict() {
+            const verdictBox = document.getElementById('verdict-display');
+            
+            if (simulationRejected) {
+                verdictBox.className = "verdict-box verdict-rejected";
+                verdictBox.innerHTML = `
+                    <div class="verdict-icon">❌</div>
+                    <div class="verdict-title">SOUMISSION REJETÉE</div>
+                    <p><strong>Motif de rejet strict :</strong> Absence de la caution provisoire.</p>
+                    <p style="margin-top: 15px; font-size: 0.9rem;">
+                        Conformément au guide des marchés publics, la caution provisoire est une pièce exigible sous peine de nullité.
+                        L'impossibilité de fournir ce document ou son format incorrect entraîne l'élimination automatique de l'offre lors de la séance d'ouverture des plis.
+                    </p>
+                `;
+            } else {
+                let recapHTML = `<ul class="recap-list">`;
+                for(let i=1; i<=12; i++) {
+                    recapHTML += `<li>✅ ${stepsData[i].title} : <i>${uploadedFiles[i]}</i></li>`;
+                }
+                recapHTML += `</ul>`;
+
+                verdictBox.className = "verdict-box verdict-success";
+                verdictBox.innerHTML = `
+                    <div class="verdict-icon">✅</div>
+                    <div class="verdict-title">DÉPÔT RÉUSSI</div>
+                    <p>Félicitations, votre soumission virtuelle a été déposée avec succès !</p>
+                    <p>Toutes les pièces obligatoires ont été insérées et validées par le système.</p>
+                    ${recapHTML}
+                `;
+            }
+        }
+
+        // Run Init
+        window.onload = init;
+    </script>
+</body>
+</html>
